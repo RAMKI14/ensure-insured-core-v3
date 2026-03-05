@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/EITVestingVault.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> EITVestingVault.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>0/33</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/42</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/7</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>0/39</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+&nbsp;
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+&nbsp;
+contract EITVestingVault is Ownable, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+&nbsp;
+    IERC20 public immutable token;
+&nbsp;
+    struct VestingSchedule {
+        bool isRevocable;
+        bool isRevoked;
+        uint256 totalAmount;
+        uint256 amountClaimed;
+        uint256 startTime;
+        uint256 cliffDuration;
+        uint256 vestingDuration;
+    }
+&nbsp;
+    mapping(address =&gt; VestingSchedule) public vestingSchedules;
+    
+    event ScheduleCreated(address indexed beneficiary, uint256 amount);
+    event TokensClaimed(address indexed beneficiary, uint256 amount);
+    event ScheduleRevoked(address indexed beneficiary, uint256 amountReturned);
+    event BeneficiaryTransferred(address indexed oldBeneficiary, address indexed newBeneficiary);
+&nbsp;
+    // FIX: Constructor now only takes 1 argument (Token Address)
+    // The Owner is automatically set to msg.sender (You)
+<span class="fstat-no" title="function not covered" >    constructor(address _token) Ownable(msg.sender) {</span>
+        token = IERC20(_token);
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function createVestingSchedule(</span>
+        address _beneficiary,
+        uint256 _amount,
+        uint256 _startTime,
+        uint256 _cliffDuration,
+        uint256 _vestingDuration,
+        bool _isRevocable
+    ) external onlyOwner {
+<span class="cstat-no" title="statement not covered" >        require(vestingSchedules[_beneficiary].totalAmount == 0, "Schedule exists")</span>;
+<span class="cstat-no" title="statement not covered" >        require(token.balanceOf(address(this)) &gt;= _amount, "Insufficient Vault Balance")</span>;
+&nbsp;
+        vestingSchedules[_beneficiary] = VestingSchedule({
+            isRevocable: _isRevocable,
+            isRevoked: false,
+            totalAmount: _amount,
+            amountClaimed: 0,
+            startTime: _startTime,
+            cliffDuration: _cliffDuration,
+            vestingDuration: _vestingDuration
+        });
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        emit ScheduleCreated(_beneficiary, _amount);</span>
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function changeBeneficiary(address _old, address _new) external onlyOwner {</span>
+<span class="cstat-no" title="statement not covered" >        require(_new != address(0), "Invalid New Address")</span>;
+<span class="cstat-no" title="statement not covered" >        require(vestingSchedules[_old].totalAmount &gt; 0, "No schedule")</span>;
+<span class="cstat-no" title="statement not covered" >        require(vestingSchedules[_new].totalAmount == 0, "Target has schedule")</span>;
+<span class="cstat-no" title="statement not covered" >        require(vestingSchedules[_old].isRevocable, "Cannot move Irrevocable Schedule")</span>;
+&nbsp;
+        vestingSchedules[_new] = vestingSchedules[_old];
+        delete vestingSchedules[_old];
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        emit BeneficiaryTransferred(_old, _new);</span>
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function transferMySchedule(address _new) external nonReentrant {</span>
+<span class="cstat-no" title="statement not covered" >        require(_new != address(0), "Invalid New Address")</span>;
+<span class="cstat-no" title="statement not covered" >        require(vestingSchedules[msg.sender].totalAmount &gt; 0, "No schedule")</span>;
+<span class="cstat-no" title="statement not covered" >        require(vestingSchedules[_new].totalAmount == 0, "Target has schedule")</span>;
+        
+        vestingSchedules[_new] = vestingSchedules[msg.sender];
+        delete vestingSchedules[msg.sender];
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        emit BeneficiaryTransferred(msg.sender, _new);</span>
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function claim() external nonReentrant {</span>
+<span class="cstat-no" title="statement not covered" >        VestingSchedule storage schedule = vestingSchedules[msg.sender];</span>
+<span class="cstat-no" title="statement not covered" >        require(schedule.totalAmount &gt; 0 &amp;&amp; !schedule.isRevoked, "Invalid Claim")</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        uint256 vested = _calculateVestedAmount(msg.sender);</span>
+<span class="cstat-no" title="statement not covered" >        uint256 claimable = vested - schedule.amountClaimed;</span>
+<span class="cstat-no" title="statement not covered" >        require(claimable &gt; 0, "Nothing to claim")</span>;
+&nbsp;
+        schedule.amountClaimed += claimable;
+<span class="cstat-no" title="statement not covered" >        token.safeTransfer(msg.sender, claimable)</span>;
+<span class="cstat-no" title="statement not covered" >        emit TokensClaimed(msg.sender, claimable);</span>
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function revoke(address _beneficiary) external onlyOwner {</span>
+<span class="cstat-no" title="statement not covered" >        VestingSchedule storage schedule = vestingSchedules[_beneficiary];</span>
+<span class="cstat-no" title="statement not covered" >        require(schedule.isRevocable &amp;&amp; !schedule.isRevoked, "Cannot revoke")</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        uint256 vested = _calculateVestedAmount(_beneficiary);</span>
+<span class="cstat-no" title="statement not covered" >        uint256 claimable = vested - schedule.amountClaimed;</span>
+        
+<span class="cstat-no" title="statement not covered" >        if (claimable &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >            token.safeTransfer(_beneficiary, claimable)</span>;
+        }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        uint256 remainder = schedule.totalAmount - vested;</span>
+        schedule.isRevoked = true;
+        
+<span class="cstat-no" title="statement not covered" >        emit ScheduleRevoked(_beneficiary, remainder);</span>
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function _calculateVestedAmount(address _beneficiary) internal view returns (uint256) {</span>
+<span class="cstat-no" title="statement not covered" >        VestingSchedule memory s = vestingSchedules[_beneficiary];</span>
+<span class="cstat-no" title="statement not covered" >        if (block.timestamp &lt; s.startTime + s.cliffDuration) <span class="cstat-no" title="statement not covered" >return 0;</span></span>
+<span class="cstat-no" title="statement not covered" >        if (block.timestamp &gt;= s.startTime + s.vestingDuration || s.isRevoked) <span class="cstat-no" title="statement not covered" >return s.totalAmount;</span></span>
+        
+<span class="cstat-no" title="statement not covered" >        return (s.totalAmount * (block.timestamp - s.startTime)) / s.vestingDuration;</span>
+    }
+}</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed Mar 04 2026 13:57:22 GMT+0530 (India Standard Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>

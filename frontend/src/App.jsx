@@ -1,0 +1,424 @@
+import { useState, useEffect } from 'react';
+import { ethers } from 'ethers';
+import addresses from './frontend-config.json';
+import CrowdsaleABI from './EITCrowdsale.json';
+import UsdtABI from './MockUSDT.json';
+import { MESSAGES } from './constants/messages';
+import TokenABI from './EnsureInsuredToken.json';
+
+// Logic Hooks
+import { useAccount, useChainId, usePublicClient } from 'wagmi';
+import { useEthersSigner } from './web3/useEthersSigner';
+
+// UI Components
+import Navbar from './components/landing/Navbar';
+import Hero from './components/landing/Hero';
+import Features from './components/landing/Features';
+import Tokenomics from './components/landing/Tokenomics';
+import Roadmap from './components/landing/Roadmap';
+import Footer from './components/landing/Footer';
+import SectionSeparator from './components/landing/SectionSeparator';
+import ComplianceModal from './components/landing/ComplianceModal';
+
+const ESTIMATED_ETH_PRICE = 2000; 
+const API_URL = "http://localhost:3001/api"; // Backend URL
+
+// Minimal Chainlink ABI
+const CHAINLINK_ABI = [
+  "function latestRoundData() view returns (uint80, int256, uint256, uint256, uint80)"
+];
+
+function App() {
+  const { address, isConnected } = useAccount();
+  const chainId = useChainId();
+  const signer = useEthersSigner();
+  const publicClient = usePublicClient(); 
+
+  // State Variables
+  const [balances, setBalances] = useState({ ETH: "0.0", USDT: "0.0", USDC: "0.0" });
+  const [livePrice, setLivePrice] = useState(0.01); 
+  const [ethPrice, setEthPrice] = useState(0); // Real ETH Price
+  const [isSalePaused, setIsSalePaused] = useState(false);
+  const [currency, setCurrency] = useState("ETH"); 
+  const [amount, setAmount] = useState("");
+  const [estimatedEIT, setEstimatedEIT] = useState("0");
+  const [status, setStatus] = useState(MESSAGES.READY);
+  const [statusColor, setStatusColor] = useState("text-gray-400");
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Advanced Features State
+  const [totalRaised, setTotalRaised] = useState(0);
+  const [phaseInfo, setPhaseInfo] = useState({ phaseName: "Phase 1: Seed Round", phaseTargetUSD: 15000000 });
+  const [ukFirstSeen, setUkFirstSeen] = useState(null);
+  const [activeReferrer, setActiveReferrer] = useState(null);
+
+  // --- 1. INITIAL FETCH (Price, Phase, Oracle) ---
+  useEffect(() => {
+    const fetchGlobalData = async () => {
+        try {
+            // Read-Only Provider
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            
+            // 1. Crowdsale Data
+            const contract = new ethers.Contract(addresses.CROWDSALE, CrowdsaleABI.abi, provider);
+            const priceWei = await contract.pricePerTokenUSD();
+            const priceEth = ethers.formatEther(priceWei);
+            const paused = await contract.paused();
+            
+            setLivePrice(parseFloat(priceEth));
+            setIsSalePaused(paused);
+
+            // 2. Oracle Data (ETH Price)
+            try {
+                const oracleAddress = await contract.nativeOracle();
+                const oracle = new ethers.Contract(oracleAddress, CHAINLINK_ABI, provider);
+                const roundData = await oracle.latestRoundData();
+                const realEthPrice = Number(roundData[1]) / 100000000; // 8 decimals
+                setEthPrice(realEthPrice);
+            } catch (err) {
+                console.warn("Oracle fetch failed, using default.");
+            }
+
+        } catch (e) { 
+            console.error("Global Data Error:", e); 
+        }
+    };
+    
+    const fetchPhaseInfo = async () => {
+        try {
+            const res = await fetch(`${API_URL}/ico-status`);
+            const data = await res.json();
+            if(data && data.phaseName) {
+                setPhaseInfo(data);
+            }
+        } catch (e) { 
+            // Silently fail if backend is offline
+        }
+    };
+
+    if (window.ethereum) fetchGlobalData();
+    fetchPhaseInfo();
+  }, []);
+
+  // --- SECURE REFERRAL CAPTURE ---
+  useEffect(() => {
+    const validateAndSetReferrer = async () => {
+        const params = new URLSearchParams(window.location.search);
+        const urlRef = params.get("ref");
+        
+        // 1. Determine Candidate (URL > LocalStorage)
+        let candidate = urlRef;
+        if (!candidate) candidate = localStorage.getItem("eit_referrer");
+
+        // 2. Initial Validation (Is it an address?)
+        if (candidate && ethers.isAddress(candidate)) {
+            
+            // Don't let user refer themselves (Basic check, Backend does stricter check)
+            if (address && candidate.toLowerCase() === address.toLowerCase()) {
+                console.warn("Cannot refer self");
+                localStorage.removeItem("eit_referrer");
+                setActiveReferrer(null);
+                return;
+            }
+
+            try {
+                // 3. ON-CHAIN VERIFICATION
+                // We use a read-only provider to check the candidate's eligibility
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                const tokenContract = new ethers.Contract(addresses.EIT, TokenABI.abi, provider);
+                const crowdContract = new ethers.Contract(addresses.CROWDSALE, CrowdsaleABI.abi, provider);
+
+                // A. Get Balance
+                const balanceWei = await tokenContract.balanceOf(candidate);
+                const balance = parseFloat(ethers.formatEther(balanceWei));
+
+                // B. Get Price
+                const priceWei = await crowdContract.pricePerTokenUSD();
+                const price = parseFloat(ethers.formatEther(priceWei));
+
+                // C. Calculate Value
+                const valUSD = balance * price;
+                const MIN_REQUIRED = 100; // $100 Limit
+
+                if (valUSD >= MIN_REQUIRED) {
+                    // ELIGIBLE: Save and Display
+                    console.log(`✅ Referrer Validated ($${valUSD.toFixed(2)})`);
+                    localStorage.setItem("eit_referrer", candidate);
+                    setActiveReferrer(candidate);
+                } else {
+                    // INELIGIBLE: Scrub it
+                    console.warn(`❌ Referrer Ineligible (Only holds $${valUSD.toFixed(2)})`);
+                    localStorage.removeItem("eit_referrer");
+                    setActiveReferrer(null);
+                }
+
+            } catch (e) {
+                console.error("Referrer Validation Failed (Network Error?)", e);
+                // Fallback: If network fails, do we accept or reject? 
+                // Security-wise, it is better to REJECT until verified.
+                setActiveReferrer(null);
+            }
+        } else {
+            // Invalid Address format
+            localStorage.removeItem("eit_referrer");
+            setActiveReferrer(null);
+        }
+    };
+
+    if (window.ethereum) {
+        validateAndSetReferrer();
+    }
+  }, [address]); // Re-run if user connects/changes wallet (to check self-referral)
+
+  // --- 3. USER DATA & COMPLIANCE ---
+  useEffect(() => {
+    if (isConnected && signer) {
+      updateUserData();
+      checkCoolingOff(address); // Check UK status
+    } else {
+      setBalances({ ETH: "0.0", USDT: "0.0", USDC: "0.0" });
+      setUkFirstSeen(null);
+    }
+  }, [isConnected, signer, chainId, address]);
+
+  // --- UK COMPLIANCE CHECK (Robust Waterfall) ---
+  const checkCoolingOff = async (userAddr) => {
+    const fetchCountry = async () => {
+        const controller = new AbortController();
+        setTimeout(() => controller.abort(), 3000); 
+        try {
+            const res = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+            if(res.ok) { const d = await res.json(); if(d.country_code) return d.country_code; }
+        } catch(e) {}
+        try {
+            const res = await fetch('https://api.country.is/'); 
+            if(res.ok) { const d = await res.json(); if(d.country) return d.country; }
+        } catch(e) {}
+        return null;
+    };
+
+    try {
+        const countryCode = await fetchCountry();
+        if (countryCode === "GB") {
+            const dbRes = await fetch(`${API_URL}/check-cooling-off`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ walletAddress: userAddr }) 
+            });
+            const dbData = await dbRes.json();
+
+            if (dbData.firstSeen) {
+                setUkFirstSeen(dbData.firstSeen);
+            } else {
+                const now = new Date().toISOString();
+                setUkFirstSeen(now);
+            }
+        } else {
+            setUkFirstSeen(null); 
+        }
+    } catch (e) { setUkFirstSeen(null); }
+  };
+
+  const updateUserData = async () => {
+    try {
+      const ethBal = await signer.provider.getBalance(address);
+      const tokenContract = new ethers.Contract(addresses.USDT, UsdtABI.abi, signer);
+      const usdtBal = await tokenContract.balanceOf(address);
+      
+      setBalances({ 
+        ETH: ethers.formatEther(ethBal), 
+        USDT: ethers.formatUnits(usdtBal, 6), 
+        USDC: ethers.formatUnits(usdtBal, 6) 
+      });
+      
+      const crowdContract = new ethers.Contract(addresses.CROWDSALE, CrowdsaleABI.abi, signer);
+      const priceWei = await crowdContract.pricePerTokenUSD();
+      setLivePrice(parseFloat(ethers.formatEther(priceWei)));
+      const paused = await crowdContract.paused();
+      setIsSalePaused(paused);
+    } catch (e) { console.error("Data Load Error:", e); }
+  };
+
+  // --- 4. CALCULATOR ---
+  useEffect(() => {
+    // Only clear status if user is actively typing
+    if (amount !== "") {
+        setStatus(""); 
+        setStatusColor("text-gray-400");
+    }
+
+    if (!amount || isNaN(amount)) { 
+        setEstimatedEIT("0"); 
+        return; 
+    }
+    
+    const val = parseFloat(amount);
+    
+    // Use Real ETH Price if available, otherwise estimate
+    const currentEthPrice = ethPrice > 0 ? ethPrice : ESTIMATED_ETH_PRICE;
+    
+    let usdValue = (currency === "ETH") ? val * currentEthPrice : val;
+    
+    // Avoid divide by zero
+    const safePrice = livePrice > 0 ? livePrice : 0.01;
+    const tokens = usdValue / safePrice; 
+    
+    setEstimatedEIT(tokens.toLocaleString());
+  }, [amount, currency, livePrice, ethPrice]);
+
+  const isCorrectNetwork = () => chainId === 11155111; 
+
+  // --- ACTIONS ---
+  const handleBuy = async () => {
+    if (!isConnected || !signer) return alert(MESSAGES.ERR_CONNECT_FIRST);
+    if (!isCorrectNetwork()) return alert(MESSAGES.WARN_NETWORK);
+    
+    const inputVal = parseFloat(amount || "0");
+    const balanceVal = parseFloat(balances[currency] || "0");
+    
+    if (inputVal <= 0) return;
+    if (inputVal > balanceVal) {
+        setStatus(MESSAGES.ERR_INSUFFICIENT_DETAILED(currency, balanceVal.toFixed(4)));
+        setStatusColor("text-red-500 font-bold");
+        return;
+    }
+
+    setIsLoading(true); 
+    setStatus(MESSAGES.STATUS_INIT); 
+    setStatusColor("text-yellow-300");
+
+    try {
+      const crowdsale = new ethers.Contract(addresses.CROWDSALE, CrowdsaleABI.abi, signer);
+      let tx;
+
+      // 1. EXECUTE BLOCKCHAIN TRANSACTION
+      if (currency === "ETH") {
+        tx = await crowdsale.buyWithNative({ value: ethers.parseEther(amount) });
+        setStatus(MESSAGES.STATUS_WAITING); 
+        await tx.wait();
+      } else {
+        const tokenContract = new ethers.Contract(addresses.USDT, UsdtABI.abi, signer);
+        const amountWei = ethers.parseUnits(amount, 6); 
+        
+        setStatus(MESSAGES.STATUS_APPROVE(currency));
+        const txApprove = await tokenContract.approve(addresses.CROWDSALE, amountWei); 
+        await txApprove.wait();
+        
+        setStatus(MESSAGES.STATUS_CONFIRM);
+        tx = await crowdsale.buyWithStablecoin(addresses.USDT, amountWei); 
+        await tx.wait();
+      }
+
+      // 2. SHOW SUCCESS (Prioritize this!)
+      setStatus(MESSAGES.SUCCESS_PURCHASE(estimatedEIT)); 
+      setStatusColor("text-green-400 font-bold");
+      setAmount(""); 
+      updateUserData();
+
+      // 3. PROCESS REFERRAL (Safe Isolated Block)
+      try {
+          const referrer = localStorage.getItem("eit_referrer");
+          
+          if (referrer && address) {
+             console.log("🔗 Reporting Referral...");
+             const val = parseFloat(amount);
+             // Use 2000 as fallback if ethPrice not loaded, or 1 for stablecoins
+             const usdVal = currency === "ETH" ? val * (ethPrice || 2000) : val;
+
+             await fetch(`${API_URL}/record-referral`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                      referrer: referrer,
+                      referee: address,
+                      amountUSD: usdVal,
+                      txHash: tx.hash,
+                      eitPrice: livePrice
+                  })
+              });
+              console.log("✅ Referral Reported");
+          }
+      } catch (refError) {
+          console.error("Referral Log Failed (User still got tokens):", refError);
+      }
+
+    } catch (e) {
+      console.error(e); 
+      setStatusColor("text-red-400");
+      if (e.code === "INSUFFICIENT_FUNDS") setStatus(MESSAGES.ERR_GAS);
+      else if (e.message && e.message.includes("user rejected")) setStatus(MESSAGES.ERR_USER_REJECTED);
+      else setStatus(MESSAGES.ERR_GENERIC + (e.reason || "Transaction Error"));
+    } finally { 
+      setIsLoading(false); 
+    }
+  };
+
+  const getFreeUSDT = async () => {
+    if(!signer) return; 
+    setIsLoading(true); 
+    setStatus(MESSAGES.STATUS_MINTING); 
+    setStatusColor("text-yellow-300");
+    try {
+      const usdt = new ethers.Contract(addresses.USDT, UsdtABI.abi, signer);
+      const tx = await usdt.faucet(); 
+      await tx.wait();
+      setStatus(MESSAGES.SUCCESS_MINT); 
+      setStatusColor("text-green-400 font-bold"); 
+      updateUserData();
+    } catch(e) { 
+        setStatus(MESSAGES.ERR_GENERIC); 
+        setStatusColor("text-red-400"); 
+    } finally { 
+        setIsLoading(false); 
+    }
+  };
+
+  // --- RENDER ---
+  return (
+    <div className="bg-gray-900 min-h-screen text-white font-sans selection:bg-blue-500 selection:text-white">
+     
+      <ComplianceModal /> 
+
+      <Navbar />
+
+      <Hero 
+        account={address}
+        isCorrectNetwork={isCorrectNetwork()}
+        currency={currency}
+        setCurrency={setCurrency}
+        amount={amount}
+        setAmount={setAmount}
+        balances={balances}
+        livePrice={livePrice}
+        estimatedEIT={estimatedEIT}
+        handleBuy={handleBuy}
+        getFreeUSDT={getFreeUSDT}
+        isLoading={isLoading}
+        status={status}
+        statusColor={statusColor}
+        isSalePaused={isSalePaused}
+        
+        totalRaised={totalRaised}
+        phaseInfo={phaseInfo} 
+        ethPrice={ethPrice} 
+
+        ukFirstSeen={ukFirstSeen}
+        activeReferrer={activeReferrer} 
+      />
+
+      <SectionSeparator />
+      <Features />
+
+      <SectionSeparator />
+      <Tokenomics />
+
+      <SectionSeparator />
+      <Roadmap />
+      
+      <Footer contractAddress={addresses.EIT} />
+
+    </div>
+  );
+}
+
+export default App;

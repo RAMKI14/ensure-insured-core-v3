@@ -1,0 +1,24 @@
+{
+  "name": "eit-final",
+  "version": "1.0.0",
+  "description": "Ensure Insured Ecosystem",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx hardhat test",
+    "compile": "npx hardhat compile",
+    "verify": "npx hardhat verify",
+    "deploy:sepolia": "npx hardhat run scripts/deploy_sepolia.js --network sepolia",
+    "deploy:polygon": "npx hardhat run scripts/deploy_sepolia.js --network polygon"
+  },
+  "keywords": [],
+  "author": "A Blocks Nexus Ltd",
+  "license": "ISC",
+  "devDependencies": {
+    "@chainlink/contracts": "^1.5.0",
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "@openzeppelin/contracts": "^5.4.0",
+    "dotenv": "^17.2.3",
+    "hardhat": "^2.28.0",
+    "solhint": "^6.0.2"
+  }
+}

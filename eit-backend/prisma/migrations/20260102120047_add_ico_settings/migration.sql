@@ -1,0 +1,7 @@
+-- CreateTable
+CREATE TABLE "ICOSettings" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT DEFAULT 1,
+    "phaseName" TEXT NOT NULL DEFAULT 'Phase 1: Seed Round',
+    "phaseTargetUSD" REAL NOT NULL DEFAULT 5000000.0,
+    "isActive" BOOLEAN NOT NULL DEFAULT true
+);

@@ -1,0 +1,7 @@
+{
+  "solc_remaps": [
+    "@openzeppelin/contracts=node_modules/@openzeppelin/contracts",
+    "@chainlink/contracts=node_modules/@chainlink/contracts"
+  ],
+  "solc_args": "--allow-paths ."
+}

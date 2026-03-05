@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model ConsentLog {
+  id            Int      @id @default(autoincrement())
+  walletAddress String
+  ipAddress     String
+  countryCode   String
+  userAgent     String
+  agreedToTerms Boolean  @default(true)
+  timestamp     DateTime @default(now())
+}
+
+model ICOSettings {
+  id             Int      @id @default(1)
+  phaseName      String   @default("Phase 1: Seed Round")
+  phaseTargetUSD Float    @default(5000000.0) // $5 Million default
+  isActive       Boolean  @default(true)
+
+  // NEW: Referral Config
+  referralActive Boolean  @default(false)
+  referralPercent Float   @default(5.0) // e.g. 5%
+}
+
+// NEW TABLE Referal
+model Referral {
+  id             Int      @id @default(autoincrement())
+  referrer       String   // Who sent the link
+  referee        String   // Who bought
+  purchaseAmount Float    // In USD/USDT
+  referrerReward Float    // <--- Renamed from rewardEIT
+  refereeBonus   Float    // <--- NEW: Extra tokens for the buyer
+  txHash         String   @unique // Proof of purchase
+  status         String   @default("PENDING") // PENDING, PAID, REJECTED
+  timestamp      DateTime @default(now())
+}
+
+//Here we store person's details to whom we allocated the vesting tokens.
+model VestingEntry {
+  address   String   @id // The Wallet Address (Unique)
+  name      String   // Employee Name
+  role      String   // FOUNDER, TEAM, PARTNER
+  amount    Float    // Amount in EIT
+  txHash    String   // Blockchain Proof
+  isRevoked Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

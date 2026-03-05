@@ -1,0 +1,111 @@
+# Dependencies
+node_modules/
+/eit-final/frontend/node_modules
+package-lock.json
+
+# Environment variables - CRITICAL: Keep these secret!
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+*.env
+eit-backend/.env
+
+# Hardhat build files
+/cache
+/artifacts
+/flattened
+typechain/
+typechain-types/
+
+# Coverage reports (generated)
+/coverage
+/coverage.json
+.coverage_artifacts/
+.coverage_cache/
+.coverage_contracts/
+
+# Hardhat Ignition
+ignition/deployments/chain-31337
+
+# Security tool outputs (generated files only)
+slither-env/
+slither-report.txt
+slither-v2.txt
+mythril-env/
+mythril-report.txt
+crowdsale_bytecode.txt
+
+# Test outputs (generated files)
+test-results.txt
+gas-report.txt
+
+# Flattened contracts (generated)
+*-flat.sol
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+contracts/.DS_Store
+frontend/.DS_Store
+frontend/src/.DS_Store
+frontend/src/assets/.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Build outputs
+/dist
+/build
+*.tsbuildinfo
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Secrets (extra safety)
+*.key
+*.pem
+*.p12
+secrets.json
+mnemonic.txt
+private-keys.txt
+
+# Frontend specific
+frontend/node_modules/
+/frontend/build
+/frontend/.next
+/frontend/out
+/frontend/.vercel
+
+# Backend specific
+eit-backend/node_modules/
+
+# ============================================
+# IMPORTANT: DO NOT IGNORE THESE!
+# ============================================
+# eit-crowdsale-tests/        ← DO NOT ADD THIS LINE!
+# slither.config.json          ← DO NOT ADD THIS LINE!
+# test/                        ← DO NOT ADD THIS LINE!
+# docs/                        ← DO NOT ADD THIS LINE!
+
+# Note: The above folders/files MUST be committed to git
+# They contain your 233 tests, documentation, and configs
