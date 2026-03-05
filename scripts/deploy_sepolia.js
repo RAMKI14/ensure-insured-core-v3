@@ -21,7 +21,7 @@ async function main() {
 
   if (networkName === "polygon") {
       // MAINNET
-      oracleAddress = "0xAB594600376Ec9fD91F8E885dADF0C639E7488q"; 
+      oracleAddress = "0xAB594600376Ec9fD91F8E885dADF0C639E748e8F"; 
       usdtAddress = "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
       usdcAddress = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359";
   } else {
@@ -33,9 +33,14 @@ async function main() {
       const MockUSDT = await (await hre.ethers.getContractFactory("MockUSDT")).deploy();
       await MockUSDT.waitForDeployment();
       usdtAddress = await MockUSDT.getAddress();
-      usdcAddress = usdtAddress; 
+
+      const MockUSDC = await (await hre.ethers.getContractFactory("MockUSDT")).deploy();
+      await MockUSDC.waitForDeployment();
+      usdcAddress = await MockUSDC.getAddress();
 
       console.log("   - Mocks Deployed.");
+      console.log("   - USDT Address:       ", usdtAddress);
+      console.log("   - USDC Address we're not testing this:       ", usdcAddress);
       console.log(" Waiting 5s...");
       await delay(5000); 
   }
@@ -61,11 +66,10 @@ async function main() {
 
   // C. CROWDSALE
   const Crowdsale = await (await hre.ethers.getContractFactory("EITCrowdsale")).deploy(
-    tokenAddr, 
-    deployer.address, 
-    oracleAddress, 
-    usdtAddress, 
-    usdcAddress
+    tokenAddr,  
+    oracleAddress,
+    deployer.address,
+    deployer.address
   );
   await Crowdsale.waitForDeployment();
   const crowdsaleAddr = await Crowdsale.getAddress();
@@ -148,7 +152,15 @@ async function main() {
   console.log("   ✅ Platform Manager Approved");
 
   // ====================================================
-  // 5. SAVE CONFIG
+  // 5. Verify contracts on Etherscan
+  // ====================================================
+  await hre.run("verify:verify", {
+  address: tokenAddr,
+  constructorArguments: [deployer.address, deployer.address],
+});
+
+  // ====================================================
+  // 6. SAVE CONFIG
   // ====================================================
   const config = {
     EIT: tokenAddr,

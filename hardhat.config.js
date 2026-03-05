@@ -3,8 +3,9 @@ require("dotenv").config();
 
 module.exports = {
   solidity: {
-    version: "0.8.20",
+    version: "0.8.25",
     settings: {
+      evmVersion: "cancun",
       optimizer: {
         enabled: true,
         runs: 200 // Vital for reducing Gas Fees on Mainnet
