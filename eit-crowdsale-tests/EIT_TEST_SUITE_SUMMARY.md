@@ -469,6 +469,12 @@ npm run test:coverage
 
 # Run with detailed trace
 npm run test:trace
+
+# Save these test results!
+npx hardhat test > test-results.txt
+
+# Generate coverage report
+npx hardhat coverage
 ```
 
 ---

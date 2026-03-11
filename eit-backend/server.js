@@ -22,7 +22,7 @@ const PORT = 3001;
 
 // --- BLOCKCHAIN SETUP ---
 // Use Public RPC (Sepolia)
-const RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com"; 
+const RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
 
 const EIT_ADDRESS = addresses.EIT;         // <--- Dynamic
 const CROWD_ADDRESS = addresses.CROWDSALE; // <--- Dynamic
@@ -64,7 +64,7 @@ app.get('/api/check-geo', (req, res) => {
 app.post('/api/check-cooling-off', async (req, res) => {
     try {
         let { walletAddress, ip } = req.body;
-        
+
         // Use Frontend IP if provided, otherwise detect server-side
         const connectionIP = getClientIP(req);
         const userIP = ip || connectionIP;
@@ -129,7 +129,7 @@ app.post('/api/log-consent', async (req, res) => {
 
         const connectionIP = getClientIP(req);
         const finalIP = ip || connectionIP;
-        
+
         if (!country || country === "UNKNOWN") {
             const geo = geoip.lookup(finalIP);
             country = geo ? geo.country : 'UNKNOWN';
@@ -174,11 +174,17 @@ app.get('/api/ico-status', async (req, res) => {
 
 app.post('/api/update-ico-status', async (req, res) => {
     try {
-        const { phaseName, phaseTargetUSD, isActive } = req.body;
+        const { phaseName, phaseTargetUSD, isActive, phaseEndDate } = req.body;
+
+        let parsedDate = null;
+        if (phaseEndDate) {
+            parsedDate = new Date(phaseEndDate);
+        }
+
         const settings = await prisma.iCOSettings.upsert({
             where: { id: 1 },
-            update: { phaseName, phaseTargetUSD: parseFloat(phaseTargetUSD), isActive },
-            create: { id: 1, phaseName, phaseTargetUSD: parseFloat(phaseTargetUSD), isActive }
+            update: { phaseName, phaseTargetUSD: parseFloat(phaseTargetUSD), isActive, phaseEndDate: parsedDate },
+            create: { id: 1, phaseName, phaseTargetUSD: parseFloat(phaseTargetUSD), isActive, phaseEndDate: parsedDate }
         });
         res.json({ success: true, settings });
     } catch (error) {
@@ -205,7 +211,7 @@ app.post('/api/record-referral', async (req, res) => {
         const { referrer, referee, amountUSD, txHash, eitPrice } = req.body;
 
         const settings = await prisma.iCOSettings.findUnique({ where: { id: 1 } });
-        
+
         if (!settings.referralActive) return res.json({ msg: "Referrals disabled" });
         if (referrer.toLowerCase() === referee.toLowerCase()) return res.json({ msg: "Self-referral" });
 
@@ -244,7 +250,7 @@ app.post('/api/record-referral', async (req, res) => {
         const referrerValUSD = amountUSD * (settings.referralPercent / 100);
         const referrerReward = referrerValUSD / safePrice;
 
-        const refereeValUSD = amountUSD * (settings.referralPercent / 100); 
+        const refereeValUSD = amountUSD * (settings.referralPercent / 100);
         const refereeBonus = refereeValUSD / safePrice;
 
         // SAVE TO DB
@@ -253,8 +259,8 @@ app.post('/api/record-referral', async (req, res) => {
                 referrer: referrer,
                 referee: referee,
                 purchaseAmount: parseFloat(amountUSD),
-                referrerReward, 
-                refereeBonus,    
+                referrerReward,
+                refereeBonus,
                 txHash: txHash
             }
         });
@@ -262,9 +268,9 @@ app.post('/api/record-referral', async (req, res) => {
         console.log(`✅ REFERRAL LOGGED: ${referrer} (+${referrerReward} EIT)`);
         res.json({ success: true });
 
-    } catch (error) { 
-        console.error("❌ REFERRAL DB ERROR:", error.message); 
-        res.json({ success: false, error: error.message }); 
+    } catch (error) {
+        console.error("❌ REFERRAL DB ERROR:", error.message);
+        res.json({ success: false, error: error.message });
     }
 });
 
@@ -299,10 +305,28 @@ app.post('/api/update-referral-status', async (req, res) => {
 // 1. Add new Employee/Schedule
 app.post('/api/vesting/add', async (req, res) => {
     try {
-        const { address, name, role, amount, txHash } = req.body;
+        const { address, name, role, amount, amountUSD, phase, country, kycStatus, eitPrice, txHash, category, note, crypto } = req.body;
+        console.log(`📝 ADDING VESTING: ${name} (${address}) | Role: ${role} | KYC: ${kycStatus}`);
+
         const entry = await prisma.vestingEntry.create({
-            data: { address, name, role, amount: parseFloat(amount), txHash }
+            data: { 
+                address, 
+                name, 
+                role, 
+                amount: parseFloat(amount), 
+                amountUSD: amountUSD ? parseFloat(amountUSD) : null,
+                eitPrice: eitPrice ? parseFloat(eitPrice) : null,
+                phase: phase || null,
+                country: country || null,
+                kycStatus: kycStatus || null,
+                txHash, 
+                category, 
+                note, 
+                crypto 
+            }
         });
+
+        console.log(`✅ SAVED TO DB: ${entry.address}`);
         res.json({ success: true, entry });
     } catch (e) {
         console.error(e);
@@ -323,9 +347,9 @@ app.get('/api/vesting/list', async (req, res) => {
 // 3. Mark as Revoked (Sync DB with Blockchain)
 app.post('/api/vesting/revoke', async (req, res) => {
     try {
-        const { address } = req.body;
+        const { id } = req.body;
         await prisma.vestingEntry.update({
-            where: { address },
+            where: { id: parseInt(id) },
             data: { isRevoked: true }
         });
         res.json({ success: true });
@@ -334,8 +358,107 @@ app.post('/api/vesting/revoke', async (req, res) => {
 
 // --- API: GET REFERRAL STATS (For Admin) ---
 app.get('/api/referral-stats', async (req, res) => {
-    const referrals = await prisma.referral.findMany({ orderBy: { timestamp: 'desc' } });
-    res.json(referrals);
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 50;
+        const skip = (page - 1) * limit;
+        const status = req.query.status; // Optional filter explicitly for PENDING or PAID
+        const search = req.query.search; // Optional search term for wallet address
+
+        const where = {};
+        if (status) where.status = status;
+        if (search) {
+            where.OR = [
+                { referrer: { contains: search } },
+                { referee: { contains: search } }
+            ];
+        }
+
+        const [referrals, total] = await Promise.all([
+            prisma.referral.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: { timestamp: 'desc' }
+            }),
+            prisma.referral.count({ where })
+        ]);
+
+        res.json({
+            data: referrals,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
+    } catch (e) {
+        console.error("Error fetching referral stats:", e);
+        res.status(500).json({ error: "Failed to fetch referrals" });
+    }
+});
+
+// --- API: ADMIN ACTIVITY LOG ---
+
+// 1. Log a new admin action
+app.post('/api/activity-logs', async (req, res) => {
+    try {
+        const { admin, action, details, severity, ipAddress, location, txHash } = req.body;
+        const sev = severity || "INFO";
+        console.log(`🛡 [${sev}] ADMIN ACTION: [${action}] by ${admin} | IP: ${ipAddress || 'unknown'}${txHash ? ' | Tx: ' + txHash : ''}`);
+
+        const log = await prisma.activityLog.create({
+            data: { admin, action, details, severity: sev, ipAddress, location, txHash }
+        });
+
+        res.json({ success: true, log });
+    } catch (e) {
+        console.error("❌ Error saving activity log:", e);
+        res.status(500).json({ error: "Failed to save log" });
+    }
+});
+
+// Helper: build Prisma where clause from query params
+function buildActivityLogWhere(query) {
+    const { severity, action, admin, from, to } = query;
+    const where = {};
+    if (severity && severity !== 'ALL') where.severity = severity;
+    if (action) where.action = { contains: action };
+    if (admin) where.admin = { contains: admin };
+    if (from || to) {
+        where.timestamp = {};
+        if (from) where.timestamp.gte = new Date(from);
+        if (to)   where.timestamp.lte = new Date(to);
+    }
+    return where;
+}
+
+// 2. Fetch activity logs with optional filters
+app.get('/api/activity-logs', async (req, res) => {
+    try {
+        const { format, ...filterQuery } = req.query;
+        const where = buildActivityLogWhere(filterQuery);
+
+        const logs = await prisma.activityLog.findMany({
+            where,
+            orderBy: { timestamp: 'desc' },
+            take: format ? undefined : 200 // no limit for export
+        });
+
+        if (format === 'csv') {
+            const header = 'ID,Timestamp,Admin,Action,Severity,Details,IP Address,Location,Tx Hash';
+            const rows = logs.map(l =>
+                `${l.id},"${new Date(l.timestamp).toISOString()}","${l.admin}","${l.action}","${l.severity}","${(l.details || '').replace(/"/g, "''")}","${l.ipAddress || ''}","${l.location || ''}","${l.txHash || ''}"`
+            );
+            const csv = [header, ...rows].join('\n');
+            res.setHeader('Content-Type', 'text/csv');
+            res.setHeader('Content-Disposition', `attachment; filename="eit_activity_log_${Date.now()}.csv"`);
+            return res.send(csv);
+        }
+
+        res.json(logs);
+    } catch (e) {
+        console.error("❌ Error fetching activity logs:", e);
+        res.status(500).json({ error: "Fetch failed" });
+    }
 });
 
 app.listen(PORT, () => {

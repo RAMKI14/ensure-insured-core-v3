@@ -36,7 +36,7 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
     uint256 public constant HARD_CAP = 100_000_000 * 1e18;
     uint256 public constant SOFT_CAP = 15_000_000 * 1e18;
 
-    uint256 public constant MILESTONE_SIZE_USD = 5_000_000 * 1e18;
+    uint256 public constant MILESTONE_SIZE_USD = 1_000_000 * 1e18;
 
     uint256 public constant MIN_CONTRIBUTION = 100 * 1e18;
     uint256 public constant MAX_CONTRIBUTION = 50_000 * 1e18;
@@ -45,8 +45,13 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
     uint256 public constant MIN_ETH_PRICE = 1000 * 1e18;
     uint256 public constant MAX_ETH_PRICE = 20000 * 1e18;
 
+    
     mapping(address => bool) public isWhitelisted;
     mapping(address => uint256) public userTotalUSD;
+
+    // Whitelist enforcement toggle
+    bool public whitelistEnabled = true;
+    event WhitelistStatusChanged(bool enabled);
 
     mapping(uint256 => mapping(address => uint256)) public phasePurchased;
     mapping(uint256 => bool) public phaseClaimEnabled;
@@ -94,8 +99,10 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
     fallback() external payable { revert("Use buyWithNative()"); }
 
     modifier onlyWhitelisted() {
+    if (whitelistEnabled) {
         require(isWhitelisted[msg.sender], "Not whitelisted");
-        _;
+    }
+    _;
     }
 
     // ------------------------------------------------
@@ -112,6 +119,21 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
         phases.push(Phase(targetUSD, priceUSD, 0, false));
 
         emit PhaseAdded(phases.length - 1, targetUSD, priceUSD);
+    }
+
+    function addPhasesBatch(uint256[] calldata targetsUSD, uint256[] calldata pricesUSD)
+        external onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        require(saleState == SaleState.Active, "Sale not active");
+        require(targetsUSD.length == pricesUSD.length, "Array length mismatch");
+        require(targetsUSD.length > 0, "Empty arrays");
+
+        for (uint256 i = 0; i < targetsUSD.length; i++) {
+            require(targetsUSD[i] > 0, "Invalid phase target");
+            require(pricesUSD[i] > 0, "Invalid phase price");
+            phases.push(Phase(targetsUSD[i], pricesUSD[i], 0, false));
+            emit PhaseAdded(phases.length - 1, targetsUSD[i], pricesUSD[i]);
+        }
     }
 
     function getPhaseCount() external view returns (uint256) {
@@ -132,6 +154,13 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
             emit WhitelistUpdated(users[i], true);
             unchecked { ++i; }
         }
+    }
+    function setWhitelistEnabled(bool enabled)
+        external
+        onlyRole(OPERATOR_ROLE)
+    {
+        whitelistEnabled = enabled;
+        emit WhitelistStatusChanged(enabled);
     }
 
     function removeFromWhitelist(address[] calldata users)
@@ -287,6 +316,8 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
     function enableRefunds()
         external onlyRole(DEFAULT_ADMIN_ROLE)
     {
+        require(saleState != SaleState.Active, "Sale still active");
+        
         require(totalRaisedUSD < SOFT_CAP);
         saleState = SaleState.Refunding;
     }

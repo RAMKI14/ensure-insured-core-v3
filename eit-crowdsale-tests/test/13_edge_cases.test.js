@@ -65,7 +65,7 @@ describe("🔬 EIT Crowdsale - Edge Cases", function () {
 
     it("Should handle purchase crossing milestone exactly", async function () {
         // Would need $5M to test - verify constant
-        expect(await crowdsale.MILESTONE_SIZE_USD()).to.equal(ethers.parseUnits("5000000", 18));
+        expect(await crowdsale.MILESTONE_SIZE_USD()).to.equal(ethers.parseUnits("1000000", 18));
     });
 
     it("Should handle refund with zero balance", async function () {

@@ -1,3 +1,4 @@
+require("dotenv").config({ path: "../.env" });
 require("@nomicfoundation/hardhat-toolbox");
 require("hardhat-contract-sizer");
 
@@ -16,6 +17,10 @@ module.exports = {
     hardhat: {
       chainId: 31337,
       allowUnlimitedContractSize: true,
+    },
+    sepolia: {
+      url: process.env.SEPOLIA_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
   },
   gasReporter: {

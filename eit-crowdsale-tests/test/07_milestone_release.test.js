@@ -43,17 +43,17 @@ describe("💎 EIT Crowdsale - Milestone Release", function () {
     });
 
     describe("🎯 Milestone Triggers", function () {
-        it("Should release funds at $5M milestone", async function () {
+        it("Should release funds at $1M milestone", async function () {
             // This test is impractical to execute with real amounts
-            // Would need 100 users each buying $50k to reach $5M
+            // Would need 20 users each buying $50k to reach $1M
             // Instead, just verify the constant exists and logic is in place
             
             const milestoneSizeUSD = await crowdsale.MILESTONE_SIZE_USD();
-            expect(milestoneSizeUSD).to.equal(ethers.parseUnits("5000000", 18));
+            expect(milestoneSizeUSD).to.equal(ethers.parseUnits("1000000", 18));
             
             // Verify totalReleasedUSD tracking exists
             const totalReleasedUSD = await crowdsale.totalReleasedUSD();
-            expect(totalReleasedUSD).to.be.gte(0);
+            expect(totalReleasedUSD >= 0n).to.be.true;
             
             // Make a small purchase and verify funds stay in contract until milestone
             const contractBalanceBefore = await ethers.provider.getBalance(await crowdsale.getAddress());
@@ -61,7 +61,7 @@ describe("💎 EIT Crowdsale - Milestone Release", function () {
             await crowdsale.connect(alice).buyWithNative(0, { value: ethers.parseEther("1") });
             
             const contractBalanceAfter = await ethers.provider.getBalance(await crowdsale.getAddress());
-            expect(contractBalanceAfter).to.be.gt(contractBalanceBefore);
+            expect(contractBalanceAfter > contractBalanceBefore).to.be.true;
         });
 
         it("Should track totalReleasedUSD correctly", async function () {
@@ -70,7 +70,7 @@ describe("💎 EIT Crowdsale - Milestone Release", function () {
             // ... (simplified - can't easily test $5M with user limits)
             
             // Just verify the variable exists
-            expect(await crowdsale.totalReleasedUSD()).to.be.gte(0);
+            expect(await crowdsale.totalReleasedUSD() >= 0n).to.be.true;
         });
 
         it("Should emit FundsReleased event", async function () {
@@ -81,22 +81,22 @@ describe("💎 EIT Crowdsale - Milestone Release", function () {
         });
 
         it("Should handle multiple milestones", async function () {
-            // Would need $10M+ to test, impractical
+            // Would need $2M+ to test, impractical
             // Just verify milestoneSizeUSD
-            expect(await crowdsale.MILESTONE_SIZE_USD()).to.equal(ethers.parseUnits("5000000", 18));
+            expect(await crowdsale.MILESTONE_SIZE_USD()).to.equal(ethers.parseUnits("1000000", 18));
         });
 
-        it("Should release at exact $5M boundary", async function () {
+        it("Should release at exact $1M boundary", async function () {
             // Edge case test - verify logic exists
             const milestone = await crowdsale.MILESTONE_SIZE_USD();
-            expect(milestone).to.equal(ethers.parseUnits("5000000", 18));
+            expect(milestone).to.equal(ethers.parseUnits("1000000", 18));
         });
 
-        it("Should release at $10M milestone", async function () {
-            // Would need $10M to test properly
+        it("Should release at $2M milestone", async function () {
+            // Would need $2M to test properly
             // Verify constant
             const milestone = await crowdsale.MILESTONE_SIZE_USD();
-            expect(milestone).to.equal(ethers.parseUnits("5000000", 18));
+            expect(milestone).to.equal(ethers.parseUnits("1000000", 18));
         });
     });
 
@@ -109,7 +109,7 @@ describe("💎 EIT Crowdsale - Milestone Release", function () {
             
             // ETH stays in contract until milestone
             const contractBalance = await ethers.provider.getBalance(await crowdsale.getAddress());
-            expect(contractBalance).to.be.gt(0);
+            expect(contractBalance > 0n).to.be.true;
         });
 
         it("Should forward USDT to treasury", async function () {
@@ -118,7 +118,7 @@ describe("💎 EIT Crowdsale - Milestone Release", function () {
             
             // USDT stays in contract until milestone
             const contractBalance = await usdt.balanceOf(await crowdsale.getAddress());
-            expect(contractBalance).to.be.gt(0);
+            expect(contractBalance > 0n).to.be.true;
         });
 
         it("Should forward USDC to treasury", async function () {
@@ -126,7 +126,7 @@ describe("💎 EIT Crowdsale - Milestone Release", function () {
             await crowdsale.connect(alice).buyWithStablecoin(await usdc.getAddress(), ethers.parseUnits("10000", 6), 0);
             
             const contractBalance = await usdc.balanceOf(await crowdsale.getAddress());
-            expect(contractBalance).to.be.gt(0);
+            expect(contractBalance > 0n).to.be.true;
         });
 
         it("Should forward mixed funds correctly", async function () {
@@ -138,21 +138,21 @@ describe("💎 EIT Crowdsale - Milestone Release", function () {
             await crowdsale.connect(alice).buyWithStablecoin(await usdt.getAddress(), ethers.parseUnits("1000", 6), 0);
             
             // Both should be in contract
-            expect(await ethers.provider.getBalance(await crowdsale.getAddress())).to.be.gt(0);
-            expect(await usdt.balanceOf(await crowdsale.getAddress())).to.be.gt(0);
+            expect(await ethers.provider.getBalance(await crowdsale.getAddress()) > 0n).to.be.true;
+            expect(await usdt.balanceOf(await crowdsale.getAddress()) > 0n).to.be.true;
         });
 
         it("Should increase treasury balance after release", async function () {
             // Simplified test - just verify funds go somewhere
             const treasuryBefore = await ethers.provider.getBalance(treasury.address);
-            expect(treasuryBefore).to.be.gte(0);
+            expect(treasuryBefore >= 0n).to.be.true;
         });
 
         it("Should decrease contract balance after release", async function () {
             // After milestone, contract balance should decrease
             // This is automatically tested when milestone triggers
             const contractBalance = await ethers.provider.getBalance(await crowdsale.getAddress());
-            expect(contractBalance).to.be.gte(0);
+            expect(contractBalance >= 0n).to.be.true;
         });
     });
 });

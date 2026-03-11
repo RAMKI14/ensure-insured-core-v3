@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/contracts/EITCrowdsale.sol": {
-      "lastModificationDate": 1772647718224,
-      "contentHash": "fc898d3678386ea1d85fbb4ff640258e",
+      "lastModificationDate": 1773232096454,
+      "contentHash": "d3aeecf8ae528c84a43b3626f78dd3eb",
       "sourceName": "contracts/EITCrowdsale.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -43,46 +43,8 @@
         "EITCrowdsale"
       ]
     },
-    "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/Pausable.sol": {
-      "lastModificationDate": 1772608937132,
-      "contentHash": "0d47b53e10b1985efbb396f937626279",
-      "sourceName": "@openzeppelin/contracts/utils/Pausable.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "../utils/Context.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "Pausable"
-      ]
-    },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/access/AccessControl.sol": {
-      "lastModificationDate": 1771433146744,
+      "lastModificationDate": 1772871139499,
       "contentHash": "d0e2c05f09a3aea7cd299bbd4a435ee2",
       "sourceName": "@openzeppelin/contracts/access/AccessControl.sol",
       "solcConfig": {
@@ -122,7 +84,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/ReentrancyGuard.sol": {
-      "lastModificationDate": 1772608938267,
+      "lastModificationDate": 1773232493343,
       "contentHash": "190613e556d509d9e9a0ea43dc5d891d",
       "sourceName": "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
       "solcConfig": {
@@ -157,8 +119,46 @@
         "ReentrancyGuard"
       ]
     },
+    "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/Pausable.sol": {
+      "lastModificationDate": 1773232494280,
+      "contentHash": "0d47b53e10b1985efbb396f937626279",
+      "sourceName": "@openzeppelin/contracts/utils/Pausable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../utils/Context.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Pausable"
+      ]
+    },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol": {
-      "lastModificationDate": 1771433278949,
+      "lastModificationDate": 1773232496064,
       "contentHash": "1fb9edee1d763745a62d0b1954998792",
       "sourceName": "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
       "solcConfig": {
@@ -197,7 +197,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol": {
-      "lastModificationDate": 1772608940710,
+      "lastModificationDate": 1773232498241,
       "contentHash": "64a3f906dc7696aa3c9fa8454b673be7",
       "sourceName": "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol",
       "solcConfig": {
@@ -233,7 +233,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/Context.sol": {
-      "lastModificationDate": 1772608940789,
+      "lastModificationDate": 1773232499243,
       "contentHash": "67bfbc07588eb8683b3fd8f6f909563e",
       "sourceName": "@openzeppelin/contracts/utils/Context.sol",
       "solcConfig": {
@@ -269,7 +269,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/access/IAccessControl.sol": {
-      "lastModificationDate": 1771254521021,
+      "lastModificationDate": 1772870707912,
       "contentHash": "def1e8f7b6cac577cf2600655bf3bdf8",
       "sourceName": "@openzeppelin/contracts/access/IAccessControl.sol",
       "solcConfig": {
@@ -305,7 +305,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol": {
-      "lastModificationDate": 1771254544893,
+      "lastModificationDate": 1773232501301,
       "contentHash": "0906d06dca25210d4696dcef6dad2909",
       "sourceName": "@openzeppelin/contracts/utils/introspection/ERC165.sol",
       "solcConfig": {
@@ -343,7 +343,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol": {
-      "lastModificationDate": 1771254544791,
+      "lastModificationDate": 1773232503968,
       "contentHash": "7074c93b1ea0a122063f26ddd1db1032",
       "sourceName": "@openzeppelin/contracts/utils/introspection/IERC165.sol",
       "solcConfig": {
@@ -379,7 +379,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
-      "lastModificationDate": 1771254544872,
+      "lastModificationDate": 1773232495145,
       "contentHash": "9261adf6457863de3e9892f51317ec89",
       "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
       "solcConfig": {
@@ -415,7 +415,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/interfaces/IERC1363.sol": {
-      "lastModificationDate": 1772608941917,
+      "lastModificationDate": 1773232500124,
       "contentHash": "a7fd0f05e36b0d0a21c75340c9c639ec",
       "sourceName": "@openzeppelin/contracts/interfaces/IERC1363.sol",
       "solcConfig": {
@@ -454,7 +454,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/interfaces/IERC20.sol": {
-      "lastModificationDate": 1771254654049,
+      "lastModificationDate": 1773232503018,
       "contentHash": "68620db2da7583d9a4919096ac77f577",
       "sourceName": "@openzeppelin/contracts/interfaces/IERC20.sol",
       "solcConfig": {
@@ -490,7 +490,7 @@
       "artifacts": []
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/interfaces/IERC165.sol": {
-      "lastModificationDate": 1771254654253,
+      "lastModificationDate": 1772766918327,
       "contentHash": "947853028399b7de34bcc3704ee06e99",
       "sourceName": "@openzeppelin/contracts/interfaces/IERC165.sol",
       "solcConfig": {
@@ -526,7 +526,7 @@
       "artifacts": []
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/contracts/EchidnaCrowdsaleTest.sol": {
-      "lastModificationDate": 1772693236472,
+      "lastModificationDate": 1772724859989,
       "contentHash": "108cb97954133590819562f140803505",
       "sourceName": "contracts/EchidnaCrowdsaleTest.sol",
       "solcConfig": {
@@ -563,10 +563,10 @@
         "EchidnaCrowdsaleTest"
       ]
     },
-    "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/contracts/MockOracle.sol": {
-      "lastModificationDate": 1772338442263,
-      "contentHash": "586d97daf00c088814b567e95c1aa6d2",
-      "sourceName": "contracts/MockOracle.sol",
+    "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/contracts/TestCrowdsale.sol": {
+      "lastModificationDate": 1773234628739,
+      "contentHash": "41e22ca1d736c7b3b9b515de69912613",
+      "sourceName": "contracts/TestCrowdsale.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
@@ -592,17 +592,21 @@
         }
       },
       "imports": [
+        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
+        "@openzeppelin/contracts/access/AccessControl.sol",
+        "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
+        "@openzeppelin/contracts/utils/Pausable.sol",
         "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol"
       ],
       "versionPragmas": [
         "^0.8.20"
       ],
       "artifacts": [
-        "MockOracle"
+        "TestCrowdsale"
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol": {
-      "lastModificationDate": 1771254555301,
+      "lastModificationDate": 1773232498276,
       "contentHash": "273d8d24b06f67207dd5f35c3a0c1086",
       "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol",
       "solcConfig": {
@@ -641,7 +645,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol": {
-      "lastModificationDate": 1771433268615,
+      "lastModificationDate": 1772826195911,
       "contentHash": "59dfce11284f2636db261df9b6a18f81",
       "sourceName": "@openzeppelin/contracts/token/ERC20/ERC20.sol",
       "solcConfig": {
@@ -682,7 +686,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/interfaces/draft-IERC6093.sol": {
-      "lastModificationDate": 1771433144958,
+      "lastModificationDate": 1772871100495,
       "contentHash": "5041977bbe908de2e6ed0270447f79ad",
       "sourceName": "@openzeppelin/contracts/interfaces/draft-IERC6093.sol",
       "solcConfig": {
@@ -720,7 +724,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol": {
-      "lastModificationDate": 1771254680858,
+      "lastModificationDate": 1773232501328,
       "contentHash": "513778b30d2750f5d2b9b19bbcf748a5",
       "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol",
       "solcConfig": {
@@ -758,7 +762,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol": {
-      "lastModificationDate": 1772608939496,
+      "lastModificationDate": 1773232497931,
       "contentHash": "a3ce035689a60e32921347c16a3fb786",
       "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol",
       "solcConfig": {
@@ -839,7 +843,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/contracts/EITDistributor.sol": {
-      "lastModificationDate": 1772338438892,
+      "lastModificationDate": 1772950781663,
       "contentHash": "3f83a7ec69e18386ea7570850a9cc191",
       "sourceName": "contracts/EITDistributor.sol",
       "solcConfig": {
@@ -880,7 +884,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/access/Ownable.sol": {
-      "lastModificationDate": 1771254520896,
+      "lastModificationDate": 1772870699597,
       "contentHash": "d3c790edc9ccf808a17c5a6cd13614fd",
       "sourceName": "@openzeppelin/contracts/access/Ownable.sol",
       "solcConfig": {
@@ -958,7 +962,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/contracts/EnsureInsuredToken.sol": {
-      "lastModificationDate": 1772338440835,
+      "lastModificationDate": 1772950781581,
       "contentHash": "b4a001067c0ecc8ea442a8f46a9a0389",
       "sourceName": "contracts/EnsureInsuredToken.sol",
       "solcConfig": {
@@ -1000,7 +1004,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol": {
-      "lastModificationDate": 1771254555492,
+      "lastModificationDate": 1773232496970,
       "contentHash": "2343c0c3b51267f4f2639ec3f99cd63e",
       "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol",
       "solcConfig": {
@@ -1042,7 +1046,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/Nonces.sol": {
-      "lastModificationDate": 1771254520926,
+      "lastModificationDate": 1773232500165,
       "contentHash": "c32d108058718efb9061b88e83a83f79",
       "sourceName": "@openzeppelin/contracts/utils/Nonces.sol",
       "solcConfig": {
@@ -1077,8 +1081,44 @@
         "Nonces"
       ]
     },
+    "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol": {
+      "lastModificationDate": 1773232500318,
+      "contentHash": "81de029d56aa803972be03c5d277cb6c",
+      "sourceName": "@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ECDSA"
+      ]
+    },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/cryptography/EIP712.sol": {
-      "lastModificationDate": 1771433146742,
+      "lastModificationDate": 1772871112512,
       "contentHash": "d67dfba302ed2489324d7584625c3bde",
       "sourceName": "@openzeppelin/contracts/utils/cryptography/EIP712.sol",
       "solcConfig": {
@@ -1117,44 +1157,8 @@
         "EIP712"
       ]
     },
-    "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol": {
-      "lastModificationDate": 1771433268549,
-      "contentHash": "81de029d56aa803972be03c5d277cb6c",
-      "sourceName": "@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "ECDSA"
-      ]
-    },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol": {
-      "lastModificationDate": 1771254807642,
+      "lastModificationDate": 1773232502168,
       "contentHash": "b01905745d47df90c7bd5dd70d498cb7",
       "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol",
       "solcConfig": {
@@ -1190,7 +1194,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/interfaces/IERC5267.sol": {
-      "lastModificationDate": 1771254654263,
+      "lastModificationDate": 1773232502146,
       "contentHash": "6e00d2fe4bc0d5f1add753824498bb35",
       "sourceName": "@openzeppelin/contracts/interfaces/IERC5267.sol",
       "solcConfig": {
@@ -1226,7 +1230,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/ShortStrings.sol": {
-      "lastModificationDate": 1771254807852,
+      "lastModificationDate": 1772870914298,
       "contentHash": "c1be9487e5a64acf23b5d8028482e748",
       "sourceName": "@openzeppelin/contracts/utils/ShortStrings.sol",
       "solcConfig": {
@@ -1264,7 +1268,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol": {
-      "lastModificationDate": 1771254807818,
+      "lastModificationDate": 1773232503042,
       "contentHash": "260f3968eefa3bbd30520cff5384cd93",
       "sourceName": "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol",
       "solcConfig": {
@@ -1302,7 +1306,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/StorageSlot.sol": {
-      "lastModificationDate": 1772608943233,
+      "lastModificationDate": 1773232504004,
       "contentHash": "e656d64c4ce918f3d13030b91c935134",
       "sourceName": "@openzeppelin/contracts/utils/StorageSlot.sol",
       "solcConfig": {
@@ -1338,7 +1342,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/Strings.sol": {
-      "lastModificationDate": 1771433242983,
+      "lastModificationDate": 1772828118010,
       "contentHash": "d8f70caf0e0c77dc908176ed44812fb7",
       "sourceName": "@openzeppelin/contracts/utils/Strings.sol",
       "solcConfig": {
@@ -1377,82 +1381,8 @@
         "Strings"
       ]
     },
-    "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/math/SafeCast.sol": {
-      "lastModificationDate": 1772608944316,
-      "contentHash": "2adca1150f58fc6f3d1f0a0f22ee7cca",
-      "sourceName": "@openzeppelin/contracts/utils/math/SafeCast.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "SafeCast"
-      ]
-    },
-    "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol": {
-      "lastModificationDate": 1771254544772,
-      "contentHash": "ae3528afb8bdb0a7dcfba5b115ee8074",
-      "sourceName": "@openzeppelin/contracts/utils/math/SignedMath.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "./SafeCast.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "SignedMath"
-      ]
-    },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/math/Math.sol": {
-      "lastModificationDate": 1771433268612,
+      "lastModificationDate": 1773232504981,
       "contentHash": "5ec781e33d3a9ac91ffdc83d94420412",
       "sourceName": "@openzeppelin/contracts/utils/math/Math.sol",
       "solcConfig": {
@@ -1490,8 +1420,82 @@
         "Math"
       ]
     },
+    "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol": {
+      "lastModificationDate": 1772870577572,
+      "contentHash": "ae3528afb8bdb0a7dcfba5b115ee8074",
+      "sourceName": "@openzeppelin/contracts/utils/math/SignedMath.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./SafeCast.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "SignedMath"
+      ]
+    },
+    "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/math/SafeCast.sol": {
+      "lastModificationDate": 1773232505946,
+      "contentHash": "2adca1150f58fc6f3d1f0a0f22ee7cca",
+      "sourceName": "@openzeppelin/contracts/utils/math/SafeCast.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "SafeCast"
+      ]
+    },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/node_modules/@openzeppelin/contracts/utils/Panic.sol": {
-      "lastModificationDate": 1771254520934,
+      "lastModificationDate": 1772868526648,
       "contentHash": "2133dc13536b4a6a98131e431fac59e1",
       "sourceName": "@openzeppelin/contracts/utils/Panic.sol",
       "solcConfig": {
@@ -1527,7 +1531,7 @@
       ]
     },
     "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/contracts/MockUSDT.sol": {
-      "lastModificationDate": 1772338443682,
+      "lastModificationDate": 1772950781772,
       "contentHash": "9664c807da40286b923fdcaf5f6de4e8",
       "sourceName": "contracts/MockUSDT.sol",
       "solcConfig": {
@@ -1562,6 +1566,44 @@
       ],
       "artifacts": [
         "MockUSDT"
+      ]
+    },
+    "/Users/ramki/Desktop/eit-final-v2/eit-crowdsale-tests/contracts/MockOracle.sol": {
+      "lastModificationDate": 1772950781542,
+      "contentHash": "586d97daf00c088814b567e95c1aa6d2",
+      "sourceName": "contracts/MockOracle.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "MockOracle"
       ]
     }
   }

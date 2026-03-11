@@ -45,6 +45,8 @@ function App() {
   const [status, setStatus] = useState(MESSAGES.READY);
   const [statusColor, setStatusColor] = useState("text-gray-400");
   const [isLoading, setIsLoading] = useState(false);
+  const [isWhitelistEnabled, setIsWhitelistEnabled] = useState(false); // Default to false for UI testing locally
+  const [isWhitelistingReady, setIsWhitelistingReady] = useState(false); // Track if contract data is fetched
   
   // Advanced Features State
   const [totalRaised, setTotalRaised] = useState(0);
@@ -64,9 +66,12 @@ function App() {
             const priceWei = await contract.pricePerTokenUSD();
             const priceEth = ethers.formatEther(priceWei);
             const paused = await contract.paused();
+            const whitelist = await contract.whitelistEnabled();
             
             setLivePrice(parseFloat(priceEth));
             setIsSalePaused(paused);
+            setIsWhitelistEnabled(whitelist);
+            setIsWhitelistingReady(true);
 
             // 2. Oracle Data (ETH Price)
             try {
@@ -315,7 +320,41 @@ function App() {
       setAmount(""); 
       updateUserData();
 
-      // 3. PROCESS REFERRAL (Safe Isolated Block)
+      // 3. AUTO-RECORD INVESTOR LEDGER (Sales Log)
+      try {
+          console.log("📝 Recording Sale to Ledger...");
+          const tokens = parseFloat(estimatedEIT.replace(/,/g, ''));
+          
+          // Calculate USD value for the ledger
+          const val = parseFloat(amount);
+          const usdVal = currency === "ETH" ? val * (ethPrice || 2000) : val;
+          const userCountry = localStorage.getItem("eit_user_country") || "Unknown";
+
+          await fetch(`${API_URL}/vesting/add`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  address: address,
+                  name: "Public Investor",
+                  role: isWhitelistEnabled ? "PUBLIC_KYC" : "PUBLIC_OPEN",
+                  amount: tokens,
+                  amountUSD: usdVal,
+                  txHash: tx.hash,
+                  category: "ICO_PURCHASE",
+                  phase: phaseInfo.phaseName,
+                  country: userCountry,
+                  eitPrice: livePrice,
+                  note: isWhitelistEnabled ? `Purchased during KYC enforced mode` : `Purchased during Open Sale mode`,
+                  crypto: currency,
+                  kycStatus: isWhitelistEnabled ? "Yes" : "No" // For compliance reporting
+              })
+          });
+          console.log("✅ Sale Recorded to Ledger");
+      } catch (ledgerError) {
+          console.error("Ledger Recording Failed:", ledgerError);
+      }
+
+      // 4. PROCESS REFERRAL (Safe Isolated Block)
       try {
           const referrer = localStorage.getItem("eit_referrer");
           
@@ -380,6 +419,24 @@ function App() {
       <ComplianceModal /> 
 
       <Navbar />
+
+      {isWhitelistingReady && (
+        isWhitelistEnabled ? (
+            <div className="bg-amber-500/10 border-b border-amber-500/20 py-2">
+                <div className="container mx-auto px-6 flex items-center justify-center gap-3">
+                    <span className="bg-amber-500 text-black text-[10px] font-black px-2 py-0.5 rounded animate-pulse">KYC PROTECTED</span>
+                    <p className="text-[11px] text-amber-200/80 font-medium">Whitelist enforcement is active. Only approved wallets can participate in this sale.</p>
+                </div>
+            </div>
+        ) : (
+            <div className="bg-green-500/10 border-b border-green-500/20 py-2">
+                <div className="container mx-auto px-6 flex items-center justify-center gap-3">
+                    <span className="bg-green-500 text-black text-[10px] font-black px-2 py-0.5 rounded animate-pulse">OPEN SALE ACTIVE</span>
+                    <p className="text-[11px] text-green-200/80 font-medium">Public wallets can participate in the sale without prior whitelisting.</p>
+                </div>
+            </div>
+        )
+      )}
 
       <Hero 
         account={address}

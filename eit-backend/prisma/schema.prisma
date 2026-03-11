@@ -22,6 +22,7 @@ model ICOSettings {
   phaseName      String   @default("Phase 1: Seed Round")
   phaseTargetUSD Float    @default(5000000.0) // $5 Million default
   isActive       Boolean  @default(true)
+  phaseEndDate   DateTime?
 
   // NEW: Referral Config
   referralActive Boolean  @default(false)
@@ -43,11 +44,33 @@ model Referral {
 
 //Here we store person's details to whom we allocated the vesting tokens.
 model VestingEntry {
-  address   String   @id // The Wallet Address (Unique)
+  id        Int      @id @default(autoincrement())
+  address   String   // The Wallet Address
   name      String   // Employee Name
   role      String   // FOUNDER, TEAM, PARTNER
+  category  String?  // KOL, Marketing Agency, etc.
+  note      String?  // Extra info
+  crypto    String?  // ETH, USDT, USDC
   amount    Float    // Amount in EIT
+  amountUSD Float?   // USD Value at time of purchase
+  eitPrice  Float?   // EIT Price in USD
+  phase     String?  // Calculation Phase
+  country   String?  // Investor Country
+  kycStatus String?  // "Yes" or "No" for compliance
   txHash    String   // Blockchain Proof
   isRevoked Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+// ActivityLog for Admin - enterprise edition
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  admin     String   // Wallet address
+  action    String   // e.g. "PAUSE_SALE"
+  details   String?  // Optional context
+  severity  String   @default("INFO") // INFO | WARNING | CRITICAL
+  ipAddress String?  // Admin's public IP at time of action
+  location  String?  // Geo-location (country/city)
+  txHash    String?  // Blockchain transaction hash (for on-chain actions)
+  timestamp DateTime @default(now())
 }
