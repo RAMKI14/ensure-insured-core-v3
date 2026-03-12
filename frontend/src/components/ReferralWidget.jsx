@@ -4,6 +4,7 @@ import { ethers } from 'ethers';
 import addresses from '../frontend-config.json';
 import TokenABI from '../EnsureInsuredToken.json'; // Need this to check balance
 import CrowdsaleABI from '../EITCrowdsale.json'; // Need this to check price
+import { getReferralHoldingValue } from '../utils/referralEligibility';
 
 const API_URL = "http://localhost:3001/api"; 
 
@@ -22,8 +23,6 @@ const ReferralWidget = ({ account }) => {
 
   // --- 1. FETCH DATA (Settings + Eligibility) ---
   useEffect(() => {
-    if (!account) return;
-
     const init = async () => {
         try {
             setLoading(true);
@@ -35,26 +34,24 @@ const ReferralWidget = ({ account }) => {
             if (data.referralActive === true) setIsActive(true);
             else {
                 setIsActive(false);
-                setLoading(false);
                 return; // Stop if system is disabled
+            }
+
+            if (!account || !window.ethereum) {
+                setIsEligible(false);
+                setCurrentValueUSD(0);
+                return;
             }
 
             // B. Check User Eligibility (On-Chain)
             const provider = new ethers.BrowserProvider(window.ethereum);
-            const tokenContract = new ethers.Contract(addresses.EIT, TokenABI.abi, provider);
-            const crowdContract = new ethers.Contract(addresses.CROWDSALE, CrowdsaleABI.abi, provider);
-
-            // Get Balance
-            const balanceWei = await tokenContract.balanceOf(account);
-            const balance = parseFloat(ethers.formatEther(balanceWei));
-
-            // Get Price
-            const phaseIndex = await crowdContract.currentPhase();
-            const phase = await crowdContract.phases(phaseIndex);
-            const price = parseFloat(ethers.formatEther(phase.priceUSD));
-
-            // Calculate Value
-            const valUSD = balance * price;
+            const { valueUsd: valUSD } = await getReferralHoldingValue(
+                account,
+                provider,
+                addresses,
+                TokenABI,
+                CrowdsaleABI
+            );
             setCurrentValueUSD(valUSD);
 
             if (valUSD >= MIN_HOLDING_USD) {
@@ -73,16 +70,35 @@ const ReferralWidget = ({ account }) => {
     init();
   }, [account]);
 
-  if (!account) return null;
   if (!isActive) return null; 
 
-  const link = `${window.location.origin}?ref=${account}`;
+  const link = account ? `${window.location.origin}?ref=${account}` : "";
 
   const copyLink = () => {
     navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
   };
+
+  if (!account) {
+    return (
+        <div className="w-full max-w-md mx-auto mt-6 bg-gray-900/70 border border-blue-500/20 rounded-xl p-6 text-center shadow-xl">
+            <div className="flex justify-center mb-3">
+                <div className="p-3 bg-blue-500/10 rounded-full text-blue-400 border border-blue-500/20">
+                    <Share2 size={24} />
+                </div>
+            </div>
+            <h3 className="text-lg font-bold text-white mb-1">Refer & Earn</h3>
+            <p className="text-xs text-gray-400 mb-4 max-w-xs mx-auto">
+                Connect your wallet to unlock your referral link. You earn <span className="text-blue-400 font-bold">{rewardPercent}%</span>, and your friend gets <span className="text-green-400 font-bold">{rewardPercent}%</span> bonus tokens.
+            </p>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-300 text-xs">
+                <Share2 size={12} />
+                <span>Referral program is active</span>
+            </div>
+        </div>
+    );
+  }
 
   // --- RENDER LOCKED STATE ---
   if (loading) return <div className="text-center text-gray-500 text-xs mt-4">Checking eligibility...</div>;

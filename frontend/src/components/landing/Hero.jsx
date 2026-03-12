@@ -71,12 +71,9 @@ const Hero = ({ totalRaised, phaseInfo, ukFirstSeen, account, activeReferrer, ..
                 
 
                 {/* 2. REFERRAL WIDGET (Placed directly below card) */}
-                {/* Only show if wallet is connected */}
-                {account && (
-                    <div className="mt-6 animate-fade-in-up">
-                        <ReferralWidget account={account} />
-                    </div>
-                )}
+                <div className="mt-6 animate-fade-in-up">
+                    <ReferralWidget account={account} />
+                </div>
             </div>
         </div>
 

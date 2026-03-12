@@ -5,6 +5,7 @@ import CrowdsaleABI from './EITCrowdsale.json';
 import UsdtABI from './MockUSDT.json';
 import { MESSAGES } from './constants/messages';
 import TokenABI from './EnsureInsuredToken.json';
+import { getReferralHoldingValue } from './utils/referralEligibility';
 
 // Logic Hooks
 import { useAccount, useChainId, usePublicClient } from 'wagmi';
@@ -137,20 +138,13 @@ function App() {
                 // 3. ON-CHAIN VERIFICATION
                 // We use a read-only provider to check the candidate's eligibility
                 const provider = new ethers.BrowserProvider(window.ethereum);
-                const tokenContract = new ethers.Contract(addresses.EIT, TokenABI.abi, provider);
-                const crowdContract = new ethers.Contract(addresses.CROWDSALE, CrowdsaleABI.abi, provider);
-
-                // A. Get Balance
-                const balanceWei = await tokenContract.balanceOf(candidate);
-                const balance = parseFloat(ethers.formatEther(balanceWei));
-
-                // B. Get Price
-                const phaseIndex = await crowdContract.currentPhase();
-                const phase = await crowdContract.phases(phaseIndex);
-                const price = parseFloat(ethers.formatEther(phase.priceUSD));
-
-                // C. Calculate Value
-                const valUSD = balance * price;
+                const { valueUsd: valUSD } = await getReferralHoldingValue(
+                    candidate,
+                    provider,
+                    addresses,
+                    TokenABI,
+                    CrowdsaleABI
+                );
                 const MIN_REQUIRED = 100; // $100 Limit
 
                 if (valUSD >= MIN_REQUIRED) {

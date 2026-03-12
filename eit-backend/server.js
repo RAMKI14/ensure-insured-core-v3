@@ -29,7 +29,12 @@ const CROWD_ADDRESS = addresses.CROWDSALE; // <--- Dynamic
 
 // Minimal ABIs
 const TOKEN_ABI = ["function balanceOf(address) view returns (uint256)"];
-const CROWD_ABI = ["function pricePerTokenUSD() view returns (uint256)"];
+const CROWD_ABI = [
+    "function getPhaseCount() view returns (uint256)",
+    "function currentPhase() view returns (uint256)",
+    "function phases(uint256) view returns (uint256 targetUSD, uint256 priceUSD, uint256 raisedUSD, bool isComplete)",
+    "function phasePurchased(uint256,address) view returns (uint256)"
+];
 
 app.use(cors());
 app.use(express.json());
@@ -221,15 +226,29 @@ app.post('/api/record-referral', async (req, res) => {
             const tokenContract = new ethers.Contract(EIT_ADDRESS, TOKEN_ABI, provider);
             const crowdContract = new ethers.Contract(CROWD_ADDRESS, CROWD_ABI, provider);
 
-            // 1. Get Referrer Balance
-            const balWei = await tokenContract.balanceOf(referrer);
-            const balance = parseFloat(ethers.formatEther(balWei));
+            const [walletBalWei, phaseCountRaw, currentPhaseRaw] = await Promise.all([
+                tokenContract.balanceOf(referrer),
+                crowdContract.getPhaseCount(),
+                crowdContract.currentPhase()
+            ]);
 
-            // 2. Get Price
-            const priceWei = await crowdContract.pricePerTokenUSD();
-            const price = parseFloat(ethers.formatEther(priceWei));
+            const phaseCount = Number(phaseCountRaw);
+            const currentPhase = Number(currentPhaseRaw);
 
-            // 3. Check Eligibility ($100 Min)
+            let pendingBalWei = 0n;
+            for (let i = 0; i < phaseCount; i += 1) {
+                pendingBalWei += await crowdContract.phasePurchased(i, referrer);
+            }
+
+            let price = 0;
+            if (phaseCount > 0) {
+                const phaseIndex = Math.min(currentPhase, phaseCount - 1);
+                const phase = await crowdContract.phases(phaseIndex);
+                price = parseFloat(ethers.formatEther(phase.priceUSD));
+            }
+
+            const totalEligibleWei = walletBalWei + pendingBalWei;
+            const balance = parseFloat(ethers.formatEther(totalEligibleWei));
             const holdingValue = balance * price;
             if (holdingValue < 100) {
                 console.log(`❌ FRAUD PREVENTED: Referrer ${referrer} only holds $${holdingValue}`);
