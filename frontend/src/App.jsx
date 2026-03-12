@@ -423,7 +423,7 @@ function App() {
       } else if (errorMessage.includes("Hard cap exceeded")) {
           setStatus(MESSAGES.ERR_HARD_CAP);
       } else if (errorMessage.includes("Below minimum contribution")) {
-          setStatus(MESSAGES.ERR_ZERO_PURCHASE);
+          setStatus(MESSAGES.ERR_MIN_CONTRIBUTION || "⚠️ Below minimum contribution ($100)");
       } else if (errorMessage.includes("Not whitelisted")) {
           setStatus(MESSAGES.ERR_NOT_WHITELISTED);
       } else if (errorMessage.includes("Sale not active")) {

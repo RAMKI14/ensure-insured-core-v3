@@ -339,17 +339,27 @@ app.get('/api/vesting/list', async (req, res) => {
     try {
         const { type } = req.query; // e.g. ?type=PUBLIC
         
-        const list = await prisma.vestingEntry.findMany({
-            where: type === 'PUBLIC' ? {
-                role: { startsWith: 'PUBLIC_' }
-            } : {
-                NOT: {
-                    role: { startsWith: 'PUBLIC_' }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
-        res.json(list);
+        if (type === 'PUBLIC') {
+            const list = await prisma.publicSale.findMany({
+                orderBy: { timestamp: 'desc' }
+            });
+            // Map timestamp to createdAt so VestingPanel.jsx sorting works seamlessly
+            const mappedList = list.map(item => ({
+                ...item,
+                createdAt: item.timestamp
+            }));
+            return res.json(mappedList);
+        } else {
+            const list = await prisma.vestingEntry.findMany({
+                where: {
+                    NOT: {
+                        role: { startsWith: 'PUBLIC_' }
+                    }
+                },
+                orderBy: { createdAt: 'desc' }
+            });
+            return res.json(list);
+        }
     } catch (e) { res.status(500).json({ error: "Fetch failed" }); }
 });
 
@@ -365,6 +375,58 @@ app.get('/api/sales', async (req, res) => {
     } catch (e) {
         console.error("Sales Calculation Error:", e);
         res.status(500).json({ error: "Failed to calculate sales" });
+    }
+});
+
+// --- NEW: Unified Sales Log (Seed, Private, Public) ---
+app.get('/api/sales/log', async (req, res) => {
+    try {
+        const [manualSales, publicSales, legacyPublicSales] = await Promise.all([
+            prisma.vestingEntry.findMany({
+                where: {
+                    role: { in: ['SEED', 'PRIVATE'] }
+                },
+                orderBy: { createdAt: 'desc' }
+            }),
+            prisma.publicSale.findMany({
+                orderBy: { timestamp: 'desc' }
+            }),
+            prisma.vestingEntry.findMany({
+                where: {
+                    role: { startsWith: 'PUBLIC_' }
+                },
+                orderBy: { createdAt: 'desc' }
+            })
+        ]);
+
+        const normalizedManual = manualSales.map((sale) => ({
+            ...sale,
+            timestamp: sale.createdAt
+        }));
+
+        const normalizedPublic = publicSales.map((sale) => ({
+            ...sale,
+            timestamp: sale.timestamp
+        }));
+
+        const normalizedLegacyPublic = legacyPublicSales.map((sale) => ({
+            ...sale,
+            timestamp: sale.createdAt
+        }));
+
+        // Deduplicate by txHash so old migrated public rows do not appear twice.
+        const combined = [...normalizedManual, ...normalizedPublic, ...normalizedLegacyPublic];
+        const deduped = combined.filter((sale, index, list) => {
+            if (!sale.txHash) return true;
+            return index === list.findIndex((candidate) => candidate.txHash === sale.txHash);
+        });
+
+        deduped.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        res.json(deduped);
+    } catch (e) {
+        console.error("Sales Log Fetch Error:", e);
+        res.status(500).json({ error: "Failed to fetch sales log" });
     }
 });
 
