@@ -112,7 +112,7 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
     function addPhase(uint256 targetUSD, uint256 priceUSD)
         external onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(saleState == SaleState.Active);
+        require(saleState == SaleState.Active, "Sale not active");
         require(targetUSD > 0, "Invalid phase target");
         require(priceUSD > 0, "Invalid phase price");
 
@@ -182,8 +182,8 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
     function addStablecoin(address tokenAddr, uint8 decimals)
         external onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(!supportedStable[tokenAddr]);
-        require(decimals <= 18);
+        require(!supportedStable[tokenAddr], "Stablecoin already supported");
+        require(decimals <= 18, "Invalid decimals");
 
         supportedStable[tokenAddr] = true;
         stablecoinDecimals[tokenAddr] = decimals;
@@ -197,7 +197,7 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
     function buyWithNative(uint256 minTokensOut)
         external payable nonReentrant whenNotPaused onlyWhitelisted
     {
-        require(saleState == SaleState.Active);
+        require(saleState == SaleState.Active || saleState == SaleState.SoftCapReached, "Sale not active");
         require(currentPhase < phases.length);
 
         uint256 price = _getOraclePrice();
@@ -211,9 +211,9 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
     function buyWithStablecoin(address stableToken, uint256 amount, uint256 minTokensOut)
         external nonReentrant whenNotPaused onlyWhitelisted
     {
-        require(supportedStable[stableToken]);
-        require(saleState == SaleState.Active);
-        require(currentPhase < phases.length);
+        require(supportedStable[stableToken], "Unsupported stablecoin");
+        require(saleState == SaleState.Active || saleState == SaleState.SoftCapReached, "Sale not active");
+        require(currentPhase < phases.length, "Invalid phase");
 
         IERC20(stableToken).safeTransferFrom(msg.sender, address(this), amount);
 

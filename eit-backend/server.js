@@ -337,11 +337,111 @@ app.post('/api/vesting/add', async (req, res) => {
 // 2. Get List of All Schedules
 app.get('/api/vesting/list', async (req, res) => {
     try {
+        const { type } = req.query; // e.g. ?type=PUBLIC
+        
         const list = await prisma.vestingEntry.findMany({
+            where: type === 'PUBLIC' ? {
+                role: { startsWith: 'PUBLIC_' }
+            } : {
+                NOT: {
+                    role: { startsWith: 'PUBLIC_' }
+                }
+            },
             orderBy: { createdAt: 'desc' }
         });
         res.json(list);
     } catch (e) { res.status(500).json({ error: "Fetch failed" }); }
+});
+
+// --- NEW: Calculate Total Sales (For Admin Tokenomics) ---
+app.get('/api/sales', async (req, res) => {
+    try {
+        const sales = await prisma.publicSale.aggregate({
+            _sum: {
+                amount: true
+            }
+        });
+        res.json({ totalTokens: sales._sum.amount || 0 });
+    } catch (e) {
+        console.error("Sales Calculation Error:", e);
+        res.status(500).json({ error: "Failed to calculate sales" });
+    }
+});
+
+// --- NEW: Add Public Sale Log ---
+app.post('/api/sales/add', async (req, res) => {
+    try {
+        const { address, name, role, amount, amountUSD, phase, country, eitPrice, txHash, note, crypto } = req.body;
+        console.log(`🛒 PUBLIC SALE RECORDED: ${address} | ${amount} EIT | Tx: ${txHash}`);
+
+        const entry = await prisma.publicSale.create({
+            data: { 
+                address, 
+                name: name || "Public Investor", 
+                role, 
+                amount: parseFloat(amount), 
+                amountUSD: amountUSD ? parseFloat(amountUSD) : null,
+                eitPrice: eitPrice ? parseFloat(eitPrice) : null,
+                phase: phase || null,
+                country: country || null,
+                txHash, 
+                note, 
+                crypto 
+            }
+        });
+
+        res.json({ success: true, entry });
+    } catch (e) {
+        console.error("Public Sale Save Error:", e);
+        res.status(500).json({ error: "Failed to save sale" });
+    }
+});
+
+// --- NEW: Get Earliest Sale per Phase (Start Dates) ---
+app.get('/api/sales/phase-starts', async (req, res) => {
+    try {
+        const starts = await prisma.publicSale.groupBy({
+            by: ['phase'],
+            _min: { timestamp: true }
+        });
+
+        const legacyStarts = await prisma.vestingEntry.findMany({
+            where: { role: { startsWith: 'PUBLIC_' } },
+            orderBy: { createdAt: 'asc' }
+        });
+
+        const mapping = {};
+
+        // Helper to turn "Phase 1: Seed" or "1" into "Phase 1"
+        const normalize = (p) => {
+            if (!p) return "Phase 1";
+            const match = String(p).match(/Phase\s*(\d+)/i);
+            if (match) return `Phase ${match[1]}`;
+            if (!isNaN(p)) return `Phase ${p}`;
+            return p;
+        };
+
+        legacyStarts.forEach(s => {
+            const phaseKey = normalize(s.phase);
+            if (!mapping[phaseKey] || new Date(s.createdAt) < new Date(mapping[phaseKey])) {
+                mapping[phaseKey] = s.createdAt;
+            }
+        });
+
+        starts.forEach(s => {
+            if (s.phase) {
+                const phaseKey = normalize(s.phase);
+                if (!mapping[phaseKey] || new Date(s._min.timestamp) < new Date(mapping[phaseKey])) {
+                    mapping[phaseKey] = s._min.timestamp;
+                }
+            }
+        });
+
+        res.json(mapping);
+    } catch (e) {
+        console.error("Phase Starts Fetch Error:", e);
+        res.status(500).json({ error: "Failed to fetch phase start dates" });
+    }
 });
 
 // 3. Mark as Revoked (Sync DB with Blockchain)

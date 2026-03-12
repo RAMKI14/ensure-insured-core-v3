@@ -74,3 +74,20 @@ model ActivityLog {
   txHash    String?  // Blockchain transaction hash (for on-chain actions)
   timestamp DateTime @default(now())
 }
+
+// NEW: Isolate Public Sales from manual Vesting/HR
+model PublicSale {
+  id             Int      @id @default(autoincrement())
+  address        String   // Buyer address
+  name           String   @default("Public Investor")
+  role           String   // PUBLIC_KYC or PUBLIC_OPEN
+  amount         Float    // Amount in EIT
+  amountUSD      Float?   // USD Value
+  eitPrice       Float?   // Price per EIT
+  txHash         String   @unique
+  phase          String?
+  country        String?
+  crypto         String?  // ETH, USDT, USDC
+  timestamp      DateTime @default(now())
+  note           String?
+}

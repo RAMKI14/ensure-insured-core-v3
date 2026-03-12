@@ -53,6 +53,8 @@ function App() {
   const [phaseInfo, setPhaseInfo] = useState({ phaseName: "Phase 1: Seed Round", phaseTargetUSD: 15000000 });
   const [ukFirstSeen, setUkFirstSeen] = useState(null);
   const [activeReferrer, setActiveReferrer] = useState(null);
+  const [userTotalUSD, setUserTotalUSD] = useState(0n);
+  const [maxContribution, setMaxContribution] = useState(0n);
 
   // --- 1. INITIAL FETCH (Price, Phase, Oracle) ---
   useEffect(() => {
@@ -73,6 +75,10 @@ function App() {
             setIsSalePaused(paused);
             setIsWhitelistEnabled(whitelist);
             setIsWhitelistingReady(true);
+
+            // 1b. Limits
+            const maxContrib = await contract.MAX_CONTRIBUTION();
+            setMaxContribution(maxContrib);
 
             // 2. Oracle Data (ETH Price)
             try {
@@ -244,6 +250,9 @@ function App() {
       setLivePrice(parseFloat(ethers.formatEther(phase.priceUSD)));
       const paused = await crowdContract.paused();
       setIsSalePaused(paused);
+
+      const totalUsd = await crowdContract.userTotalUSD(address);
+      setUserTotalUSD(totalUsd);
     } catch (e) { console.error("Data Load Error:", e); }
   };
 
@@ -297,6 +306,22 @@ function App() {
 
     try {
       const crowdsale = new ethers.Contract(addresses.CROWDSALE, CrowdsaleABI.abi, signer);
+      
+      // Calculate USD value of current attempt
+      const usdValueWei = currency === "ETH" 
+        ? (ethers.parseEther(amount) * BigInt(Math.floor(ethPrice || 2000))) / 1n
+        : ethers.parseUnits(amount, 18); // Internal contract math uses 18 decimals for USD values
+
+      // PROACTIVE CHECK (Industry Standard)
+      if (userTotalUSD + usdValueWei > maxContribution) {
+          const remainingWei = maxContribution > userTotalUSD ? maxContribution - userTotalUSD : 0n;
+          const remainingUSD = ethers.formatUnits(remainingWei, 18);
+          setStatus(MESSAGES.ERR_MAX_WALLET_LIMIT(parseFloat(remainingUSD).toLocaleString()));
+          setStatusColor("text-red-400 font-bold");
+          setIsLoading(false);
+          return;
+      }
+
       let tx;
 
       // 1. EXECUTE BLOCKCHAIN TRANSACTION
@@ -332,8 +357,8 @@ function App() {
           const val = parseFloat(amount);
           const usdVal = currency === "ETH" ? val * (ethPrice || 2000) : val;
           const userCountry = localStorage.getItem("eit_user_country") || "Unknown";
-
-          await fetch(`${API_URL}/vesting/add`, {
+          
+          await fetch(`${API_URL}/sales/add`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -342,14 +367,13 @@ function App() {
                   role: isWhitelistEnabled ? "PUBLIC_KYC" : "PUBLIC_OPEN",
                   amount: tokens,
                   amountUSD: usdVal,
-                  txHash: tx.hash,
-                  category: "ICO_PURCHASE",
                   phase: phaseInfo.phaseName,
                   country: userCountry,
                   eitPrice: livePrice,
-                  note: isWhitelistEnabled ? `Purchased during KYC enforced mode` : `Purchased during Open Sale mode`,
+                  txHash: tx.hash,
                   crypto: currency,
-                  kycStatus: isWhitelistEnabled ? "Yes" : "No" // For compliance reporting
+                  note: isWhitelistEnabled ? `Purchased during KYC enforced mode` : `Purchased during Open Sale mode`,
+                  kycStatus: isWhitelistEnabled ? "Yes" : "No"
               })
           });
           console.log("✅ Sale Recorded to Ledger");
@@ -364,7 +388,6 @@ function App() {
           if (referrer && address) {
              console.log("🔗 Reporting Referral...");
              const val = parseFloat(amount);
-             // Use 2000 as fallback if ethPrice not loaded, or 1 for stablecoins
              const usdVal = currency === "ETH" ? val * (ethPrice || 2000) : val;
 
              await fetch(`${API_URL}/record-referral`, {
@@ -381,15 +404,37 @@ function App() {
               console.log("✅ Referral Reported");
           }
       } catch (refError) {
-          console.error("Referral Log Failed (User still got tokens):", refError);
+          console.error("Referral Log Failed:", refError);
       }
 
     } catch (e) {
-      console.error(e); 
+      console.error("Transaction Error Detail:", e); 
       setStatusColor("text-red-400");
-      if (e.code === "INSUFFICIENT_FUNDS") setStatus(MESSAGES.ERR_GAS);
-      else if (e.message && e.message.includes("user rejected")) setStatus(MESSAGES.ERR_USER_REJECTED);
-      else setStatus(MESSAGES.ERR_GENERIC + (e.reason || "Transaction Error"));
+      
+      const errorMessage = e.reason || e.message || "";
+      
+      if (e.code === "INSUFFICIENT_FUNDS") {
+          setStatus(MESSAGES.ERR_GAS);
+      } else if (errorMessage.includes("user rejected")) {
+          setStatus(MESSAGES.ERR_USER_REJECTED);
+      } else if (errorMessage.includes("User cap exceeded")) {
+          const remainingWei = maxContribution > userTotalUSD ? maxContribution - userTotalUSD : 0n;
+          setStatus(MESSAGES.ERR_MAX_WALLET_LIMIT(parseFloat(ethers.formatUnits(remainingWei, 18)).toLocaleString()));
+      } else if (errorMessage.includes("Hard cap exceeded")) {
+          setStatus(MESSAGES.ERR_HARD_CAP);
+      } else if (errorMessage.includes("Below minimum contribution")) {
+          setStatus(MESSAGES.ERR_ZERO_PURCHASE);
+      } else if (errorMessage.includes("Not whitelisted")) {
+          setStatus(MESSAGES.ERR_NOT_WHITELISTED);
+      } else if (errorMessage.includes("Sale not active")) {
+          setStatus(MESSAGES.ERR_SALE_NOT_ACTIVE);
+      } else if (errorMessage.includes("Phase cap exceeded")) {
+          setStatus(MESSAGES.ERR_PHASE_CAP);
+      } else if (errorMessage.includes("Unsupported stablecoin")) {
+          setStatus("⚠️ This currency is not yet supported in the contract.");
+      } else {
+          setStatus(MESSAGES.ERR_GENERIC + (e.reason || "Blockchain Revert"));
+      }
     } finally { 
       setIsLoading(false); 
     }

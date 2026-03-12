@@ -106,7 +106,7 @@ const CRYPTO_ICONS = {
         <div className="flex justify-between text-xs mb-2 px-1">
           <label className="text-gray-400 uppercase font-bold tracking-wider">{MESSAGES.LABEL_PAY_AMOUNT}</label>
           <span className={isInsufficientBalance ? "text-red-400 font-bold transition-colors" : "text-gray-400 transition-colors"}>
-            {MESSAGES.LABEL_BALANCE} <span className="font-mono text-white">{parseFloat(balances[currency]).toFixed(4)}</span> {currency}
+            {MESSAGES.LABEL_BALANCE} <span className="font-mono text-white">{parseFloat(balances[currency] || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}</span> {currency}
           </span>
         </div>
         
@@ -126,8 +126,9 @@ const CRYPTO_ICONS = {
           <div className="bg-gray-700 border border-gray-600 border-l-0 rounded-r-lg p-3 px-3 font-bold text-gray-300 min-w-[90px] flex items-center justify-center gap-2">
             <img 
                 src={CRYPTO_ICONS[currency]} 
-                alt={currency} 
-                className="w-5 h-5 object-contain" 
+                alt="" 
+                className="w-5 h-5 object-contain"
+                onError={(e) => { e.target.style.display = 'none'; }}
             />
             {currency}
           </div>

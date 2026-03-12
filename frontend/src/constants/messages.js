@@ -30,6 +30,14 @@ export const MESSAGES = {
   ERR_USER_REJECTED: "Action cancelled by user.",
   ERR_PENDING_REQUEST: "MetaMask is already waiting! Check the extension.",
   ERR_GENERIC: "Transaction Failed: ",
+  
+  // --- CONTRACT REVERT TRANSLATIONS ---
+  ERR_MAX_WALLET_LIMIT: (remaining) => `⚠️ Max Wallet Limit Reached! You can only purchase $${remaining} more.`,
+  ERR_SALE_NOT_ACTIVE: "⚠️ The token sale is currently not active or paused.",
+  ERR_PHASE_CAP: "⚠️ This sale phase has reached its maximum capacity.",
+  ERR_HARD_CAP: "⚠️ The Crowdsale hard cap has been reached.",
+  ERR_NOT_WHITELISTED: "⚠️ Your wallet is not whitelisted for this sale.",
+  ERR_ZERO_PURCHASE: "⚠️ Purchase amount cannot be zero.",
 
   // --- STATUS UPDATES (YELLOW) ---
   STATUS_INIT: "Initiating Transaction...",
