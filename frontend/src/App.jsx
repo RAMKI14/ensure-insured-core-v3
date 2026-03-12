@@ -63,8 +63,9 @@ function App() {
             
             // 1. Crowdsale Data
             const contract = new ethers.Contract(addresses.CROWDSALE, CrowdsaleABI.abi, provider);
-            const priceWei = await contract.pricePerTokenUSD();
-            const priceEth = ethers.formatEther(priceWei);
+            const phaseIndex = await contract.currentPhase();
+            const phase = await contract.phases(phaseIndex);
+            const priceEth = ethers.formatEther(phase.priceUSD);
             const paused = await contract.paused();
             const whitelist = await contract.whitelistEnabled();
             
@@ -75,7 +76,7 @@ function App() {
 
             // 2. Oracle Data (ETH Price)
             try {
-                const oracleAddress = await contract.nativeOracle();
+                const oracleAddress = await contract.oracle();
                 const oracle = new ethers.Contract(oracleAddress, CHAINLINK_ABI, provider);
                 const roundData = await oracle.latestRoundData();
                 const realEthPrice = Number(roundData[1]) / 100000000; // 8 decimals
@@ -138,8 +139,9 @@ function App() {
                 const balance = parseFloat(ethers.formatEther(balanceWei));
 
                 // B. Get Price
-                const priceWei = await crowdContract.pricePerTokenUSD();
-                const price = parseFloat(ethers.formatEther(priceWei));
+                const phaseIndex = await crowdContract.currentPhase();
+                const phase = await crowdContract.phases(phaseIndex);
+                const price = parseFloat(ethers.formatEther(phase.priceUSD));
 
                 // C. Calculate Value
                 const valUSD = balance * price;
@@ -237,8 +239,9 @@ function App() {
       });
       
       const crowdContract = new ethers.Contract(addresses.CROWDSALE, CrowdsaleABI.abi, signer);
-      const priceWei = await crowdContract.pricePerTokenUSD();
-      setLivePrice(parseFloat(ethers.formatEther(priceWei)));
+      const phaseIndex = await crowdContract.currentPhase();
+      const phase = await crowdContract.phases(phaseIndex);
+      setLivePrice(parseFloat(ethers.formatEther(phase.priceUSD)));
       const paused = await crowdContract.paused();
       setIsSalePaused(paused);
     } catch (e) { console.error("Data Load Error:", e); }
@@ -298,7 +301,7 @@ function App() {
 
       // 1. EXECUTE BLOCKCHAIN TRANSACTION
       if (currency === "ETH") {
-        tx = await crowdsale.buyWithNative({ value: ethers.parseEther(amount) });
+        tx = await crowdsale.buyWithNative(0n, { value: ethers.parseEther(amount) });
         setStatus(MESSAGES.STATUS_WAITING); 
         await tx.wait();
       } else {
@@ -310,7 +313,7 @@ function App() {
         await txApprove.wait();
         
         setStatus(MESSAGES.STATUS_CONFIRM);
-        tx = await crowdsale.buyWithStablecoin(addresses.USDT, amountWei); 
+        tx = await crowdsale.buyWithStablecoin(addresses.USDT, amountWei, 0n); 
         await tx.wait();
       }
 

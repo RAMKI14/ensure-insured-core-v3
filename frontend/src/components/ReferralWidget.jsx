@@ -49,8 +49,9 @@ const ReferralWidget = ({ account }) => {
             const balance = parseFloat(ethers.formatEther(balanceWei));
 
             // Get Price
-            const priceWei = await crowdContract.pricePerTokenUSD();
-            const price = parseFloat(ethers.formatEther(priceWei));
+            const phaseIndex = await crowdContract.currentPhase();
+            const phase = await crowdContract.phases(phaseIndex);
+            const price = parseFloat(ethers.formatEther(phase.priceUSD));
 
             // Calculate Value
             const valUSD = balance * price;
