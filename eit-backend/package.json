@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "archive:activity-logs": "node scripts/archive_activity_logs.js"
   },
   "keywords": [],
   "author": "",

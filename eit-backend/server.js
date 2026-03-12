@@ -583,6 +583,9 @@ app.get('/api/referral-stats', async (req, res) => {
 app.post('/api/activity-logs', async (req, res) => {
     try {
         const { admin, action, details, severity, ipAddress, location, txHash } = req.body;
+        if (action === 'PANEL_VIEW') {
+            return res.json({ success: true, ignored: true });
+        }
         const sev = severity || "INFO";
         console.log(`🛡 [${sev}] ADMIN ACTION: [${action}] by ${admin} | IP: ${ipAddress || 'unknown'}${txHash ? ' | Tx: ' + txHash : ''}`);
 
@@ -615,27 +618,48 @@ function buildActivityLogWhere(query) {
 // 2. Fetch activity logs with optional filters
 app.get('/api/activity-logs', async (req, res) => {
     try {
-        const { format, ...filterQuery } = req.query;
+        const { format, page: pageParam, limit: limitParam, ...filterQuery } = req.query;
         const where = buildActivityLogWhere(filterQuery);
+        const page = Math.max(parseInt(pageParam, 10) || 1, 1);
+        const limit = Math.min(Math.max(parseInt(limitParam, 10) || 50, 1), 200);
 
-        const logs = await prisma.activityLog.findMany({
-            where,
-            orderBy: { timestamp: 'desc' },
-            take: format ? undefined : 200 // no limit for export
-        });
+        if (format) {
+            const logs = await prisma.activityLog.findMany({
+                where,
+                orderBy: { timestamp: 'desc' }
+            });
 
-        if (format === 'csv') {
-            const header = 'ID,Timestamp,Admin,Action,Severity,Details,IP Address,Location,Tx Hash';
-            const rows = logs.map(l =>
-                `${l.id},"${new Date(l.timestamp).toISOString()}","${l.admin}","${l.action}","${l.severity}","${(l.details || '').replace(/"/g, "''")}","${l.ipAddress || ''}","${l.location || ''}","${l.txHash || ''}"`
-            );
-            const csv = [header, ...rows].join('\n');
-            res.setHeader('Content-Type', 'text/csv');
-            res.setHeader('Content-Disposition', `attachment; filename="eit_activity_log_${Date.now()}.csv"`);
-            return res.send(csv);
+            if (format === 'csv') {
+                const header = 'ID,Timestamp,Admin,Action,Severity,Details,IP Address,Location,Tx Hash';
+                const rows = logs.map(l =>
+                    `${l.id},"${new Date(l.timestamp).toISOString()}","${l.admin}","${l.action}","${l.severity}","${(l.details || '').replace(/"/g, "''")}","${l.ipAddress || ''}","${l.location || ''}","${l.txHash || ''}"`
+                );
+                const csv = [header, ...rows].join('\n');
+                res.setHeader('Content-Type', 'text/csv');
+                res.setHeader('Content-Disposition', `attachment; filename="eit_activity_log_${Date.now()}.csv"`);
+                return res.send(csv);
+            }
+
+            return res.json(logs);
         }
 
-        res.json(logs);
+        const [logs, total] = await Promise.all([
+            prisma.activityLog.findMany({
+                where,
+                orderBy: { timestamp: 'desc' },
+                skip: (page - 1) * limit,
+                take: limit
+            }),
+            prisma.activityLog.count({ where })
+        ]);
+
+        res.json({
+            data: logs,
+            total,
+            page,
+            limit,
+            totalPages: Math.max(Math.ceil(total / limit), 1)
+        });
     } catch (e) {
         console.error("❌ Error fetching activity logs:", e);
         res.status(500).json({ error: "Fetch failed" });

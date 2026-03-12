@@ -1,0 +1,6 @@
+# Run activity-log maintenance every day at 01:15 AM local server time.
+# Replace /Users/ramki/Desktop/eit-final-v2 with the real deployment path.
+15 1 * * * cd /Users/ramki/Desktop/eit-final-v2/eit-backend && /usr/bin/env node scripts/archive_activity_logs.js >> /Users/ramki/Desktop/eit-final-v2/eit-backend/activity-log-maintenance.log 2>&1
+
+# Example with custom retention values:
+# 15 1 * * * cd /Users/ramki/Desktop/eit-final-v2/eit-backend && ACTIVITY_INFO_RETENTION_DAYS=45 ACTIVITY_WARNING_RETENTION_DAYS=365 /usr/bin/env node scripts/archive_activity_logs.js >> /Users/ramki/Desktop/eit-final-v2/eit-backend/activity-log-maintenance.log 2>&1

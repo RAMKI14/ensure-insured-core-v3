@@ -73,6 +73,33 @@ model ActivityLog {
   location  String?  // Geo-location (country/city)
   txHash    String?  // Blockchain transaction hash (for on-chain actions)
   timestamp DateTime @default(now())
+
+  @@index([timestamp])
+  @@index([severity])
+  @@index([admin])
+  @@index([action])
+  @@index([severity, timestamp])
+}
+
+model ActivityLogArchive {
+  id            Int      @id @default(autoincrement())
+  originalLogId Int?
+  admin         String
+  action        String
+  details       String?
+  severity      String   @default("INFO")
+  ipAddress     String?
+  location      String?
+  txHash        String?
+  timestamp     DateTime
+  archivedAt    DateTime @default(now())
+  archiveReason String   @default("RETENTION")
+
+  @@index([originalLogId])
+  @@index([timestamp])
+  @@index([archivedAt])
+  @@index([severity])
+  @@index([action])
 }
 
 // NEW: Isolate Public Sales from manual Vesting/HR

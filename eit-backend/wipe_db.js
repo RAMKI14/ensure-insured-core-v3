@@ -18,6 +18,9 @@ async function main() {
         const deleteActivityLogs = await prisma.activityLog.deleteMany();
         console.log(`✅ Cleared ActivityLogs: ${deleteActivityLogs.count}`);
 
+        const deleteArchivedActivityLogs = await prisma.activityLogArchive.deleteMany();
+        console.log(`✅ Cleared ActivityLogArchive: ${deleteArchivedActivityLogs.count}`);
+
         const deleteConsentLogs = await prisma.consentLog.deleteMany();
         console.log(`✅ Cleared ConsentLogs: ${deleteConsentLogs.count}`);
 
