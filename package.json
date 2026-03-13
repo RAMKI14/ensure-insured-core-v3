@@ -8,7 +8,9 @@
     "compile": "npx hardhat compile",
     "verify": "npx hardhat verify",
     "deploy:sepolia": "npx hardhat run scripts/deploy_sepolia.js --network sepolia",
-    "deploy:polygon": "npx hardhat run scripts/deploy_sepolia.js --network polygon"
+    "deploy:polygon": "npx hardhat run scripts/deploy_sepolia.js --network polygon",
+    "deploy:production:multisig": "npx hardhat run scripts/production-multi-sig.js --network sepolia",
+    "handoff:production": "npx hardhat run scripts/post_deploy_handoff.js --network sepolia"
   },
   "keywords": [],
   "author": "A Blocks Nexus Ltd",

@@ -3,6 +3,7 @@ const cors = require('cors');
 const { PrismaClient } = require('@prisma/client');
 const geoip = require('geoip-lite');
 const { ethers } = require('ethers');
+const crypto = require('crypto');
 
 // --- DYNAMIC CONFIGURATION ---
 // Import the addresses directly from the JSON file
@@ -39,11 +40,92 @@ const CROWD_ABI = [
 app.use(cors());
 app.use(express.json());
 
+const SUPPORTED_KYC_PROVIDERS = {
+    civic_pass: { label: 'Civic Pass', url: 'https://www.civic.com/' },
+    fractal_id: { label: 'Fractal ID', url: 'https://fractal.id/' },
+    blockpass: { label: 'Blockpass', url: 'https://www.blockpass.org/' },
+};
+
+const kycRateLimit = new Map();
+
 // --- HELPER: SAFE IP EXTRACTION ---
 // Prevents crashes if IP is undefined
 const getClientIP = (req) => {
     const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
     return rawIp.replace('::ffff:', ''); // Remove IPv6 prefix if present
+};
+
+const sanitizeText = (value, maxLength = 5000) => {
+    if (value === undefined || value === null) return '';
+    return String(value).replace(/\0/g, '').trim().slice(0, maxLength);
+};
+
+const hashCredential = (credential) => crypto.createHash('sha256').update(credential).digest('hex');
+
+const normalizeWallet = (walletAddress) => String(walletAddress || '').trim().toLowerCase();
+
+const getProviderLabel = (providerKey) => SUPPORTED_KYC_PROVIDERS[providerKey]?.label || providerKey;
+
+const enforceKycRateLimit = (req, walletAddress) => {
+    const ip = getClientIP(req);
+    const key = `${ip}:${normalizeWallet(walletAddress)}`;
+    const now = Date.now();
+    const windowMs = 10 * 60 * 1000;
+    const maxAttempts = 5;
+    const attempts = (kycRateLimit.get(key) || []).filter((ts) => now - ts < windowMs);
+
+    if (attempts.length >= maxAttempts) {
+        return false;
+    }
+
+    attempts.push(now);
+    kycRateLimit.set(key, attempts);
+    return true;
+};
+
+const validateKycCredential = (provider, walletAddress, credential) => {
+    const providerConfig = SUPPORTED_KYC_PROVIDERS[provider];
+    if (!providerConfig) {
+        return { ok: false, message: 'Provider not supported' };
+    }
+
+    const sanitizedCredential = sanitizeText(credential, 10000);
+    if (sanitizedCredential.length < 20) {
+        return { ok: false, message: 'Invalid credential' };
+    }
+
+    let parsed;
+    try {
+        parsed = JSON.parse(sanitizedCredential);
+    } catch {
+        return { ok: false, message: 'Invalid credential' };
+    }
+
+    const credentialWallet = normalizeWallet(
+        parsed.walletAddress || parsed.address || parsed.subjectWallet || parsed.subject
+    );
+    if (!credentialWallet || credentialWallet !== normalizeWallet(walletAddress)) {
+        return { ok: false, message: 'Credential does not match wallet' };
+    }
+
+    const credentialProvider = sanitizeText(parsed.provider || parsed.issuer || '').toLowerCase();
+    const acceptedProviderNames = [
+        provider,
+        providerConfig.label.toLowerCase(),
+    ];
+    if (credentialProvider && !acceptedProviderNames.includes(credentialProvider)) {
+        return { ok: false, message: 'Provider not supported' };
+    }
+
+    const expiresAt = parsed.expiresAt || parsed.expiry || parsed.expirationDate;
+    if (expiresAt && Number.isNaN(new Date(expiresAt).getTime()) === false && new Date(expiresAt) < new Date()) {
+        return { ok: false, message: 'Credential expired' };
+    }
+
+    return {
+        ok: true,
+        sanitizedCredential,
+    };
 };
 
 const BANNED_COUNTRIES = ['US', 'IN', 'CN', 'KP', 'IR', 'RU', 'AE', 'GB'];
@@ -397,10 +479,185 @@ app.get('/api/sales', async (req, res) => {
     }
 });
 
+app.get('/api/kyc/providers', (req, res) => {
+    res.json(
+        Object.entries(SUPPORTED_KYC_PROVIDERS).map(([key, value]) => ({
+            key,
+            label: value.label,
+            url: value.url,
+        }))
+    );
+});
+
+app.get('/api/kyc/status/:walletAddress', async (req, res) => {
+    try {
+        const walletAddress = normalizeWallet(req.params.walletAddress);
+        if (!ethers.isAddress(walletAddress)) {
+            return res.status(400).json({ error: 'Invalid wallet address' });
+        }
+
+        const record = await prisma.kycVerification.findUnique({
+            where: { walletAddress }
+        });
+
+        if (!record) {
+            return res.json({ status: 'NOT_VERIFIED', walletAddress });
+        }
+
+        return res.json({
+            ...record,
+            providerLabel: getProviderLabel(record.provider),
+        });
+    } catch (e) {
+        console.error('KYC status fetch error:', e);
+        res.status(500).json({ error: 'Failed to fetch KYC status' });
+    }
+});
+
+app.get('/api/kyc/records', async (req, res) => {
+    try {
+        const records = await prisma.kycVerification.findMany({
+            orderBy: { verifiedAt: 'desc' }
+        });
+
+        res.json(records.map((record) => ({
+            ...record,
+            providerLabel: getProviderLabel(record.provider),
+        })));
+    } catch (e) {
+        console.error('KYC records fetch error:', e);
+        res.status(500).json({ error: 'Failed to fetch KYC records' });
+    }
+});
+
+app.post('/api/kyc/verify', async (req, res) => {
+    try {
+        const walletAddress = normalizeWallet(req.body.walletAddress);
+        const provider = sanitizeText(req.body.provider, 100).toLowerCase();
+        const credential = req.body.credential;
+
+        if (!ethers.isAddress(walletAddress)) {
+            return res.status(400).json({ error: 'Invalid wallet address' });
+        }
+
+        if (!enforceKycRateLimit(req, walletAddress)) {
+            return res.status(429).json({ error: 'Too many verification attempts. Please try again later.' });
+        }
+
+        const validation = validateKycCredential(provider, walletAddress, credential);
+        if (!validation.ok) {
+            await prisma.kycVerification.upsert({
+                where: { walletAddress },
+                update: {
+                    provider,
+                    status: 'REJECTED',
+                    lastError: validation.message,
+                    verificationMethod: 'decentralized_identity',
+                },
+                create: {
+                    walletAddress,
+                    provider,
+                    credentialHash: hashCredential(sanitizeText(credential, 10000) || walletAddress),
+                    status: 'REJECTED',
+                    lastError: validation.message,
+                    verificationMethod: 'decentralized_identity',
+                }
+            });
+
+            return res.status(400).json({ error: validation.message });
+        }
+
+        const credentialHash = hashCredential(validation.sanitizedCredential);
+        const record = await prisma.kycVerification.upsert({
+            where: { walletAddress },
+            update: {
+                provider,
+                credentialHash,
+                verificationMethod: 'decentralized_identity',
+                status: 'VERIFIED_PENDING_WHITELIST',
+                verifiedAt: new Date(),
+                approvedAt: null,
+                approvedBy: null,
+                lastError: null,
+            },
+            create: {
+                walletAddress,
+                provider,
+                credentialHash,
+                verificationMethod: 'decentralized_identity',
+                status: 'VERIFIED_PENDING_WHITELIST',
+            }
+        });
+
+        res.json({
+            success: true,
+            record: {
+                ...record,
+                providerLabel: getProviderLabel(record.provider),
+            }
+        });
+    } catch (e) {
+        console.error('KYC verification error:', e);
+        res.status(500).json({ error: 'Failed to verify credential' });
+    }
+});
+
+app.post('/api/kyc/mark-whitelisted', async (req, res) => {
+    try {
+        const walletAddresses = Array.isArray(req.body.walletAddresses) ? req.body.walletAddresses : [];
+        const approvedBy = sanitizeText(req.body.approvedBy, 200) || null;
+        const normalized = [...new Set(walletAddresses.map(normalizeWallet).filter((wallet) => ethers.isAddress(wallet)))];
+
+        if (normalized.length === 0) {
+            return res.json({ success: true, count: 0 });
+        }
+
+        const result = await prisma.kycVerification.updateMany({
+            where: { walletAddress: { in: normalized } },
+            data: {
+                status: 'WHITELISTED',
+                approvedAt: new Date(),
+                approvedBy,
+                lastError: null,
+            }
+        });
+
+        res.json({ success: true, count: result.count });
+    } catch (e) {
+        console.error('KYC mark-whitelisted error:', e);
+        res.status(500).json({ error: 'Failed to mark wallets as whitelisted' });
+    }
+});
+
+app.post('/api/kyc/mark-pending', async (req, res) => {
+    try {
+        const walletAddresses = Array.isArray(req.body.walletAddresses) ? req.body.walletAddresses : [];
+        const normalized = [...new Set(walletAddresses.map(normalizeWallet).filter((wallet) => ethers.isAddress(wallet)))];
+
+        if (normalized.length === 0) {
+            return res.json({ success: true, count: 0 });
+        }
+
+        const result = await prisma.kycVerification.updateMany({
+            where: { walletAddress: { in: normalized } },
+            data: {
+                status: 'VERIFIED_PENDING_WHITELIST',
+                approvedAt: null,
+                approvedBy: null,
+            }
+        });
+
+        res.json({ success: true, count: result.count });
+    } catch (e) {
+        console.error('KYC mark-pending error:', e);
+        res.status(500).json({ error: 'Failed to reset wallets to pending' });
+    }
+});
+
 // --- NEW: Unified Sales Log (Seed, Private, Public) ---
 app.get('/api/sales/log', async (req, res) => {
     try {
-        const [manualSales, publicSales, legacyPublicSales] = await Promise.all([
+        const [manualSales, publicSales, legacyPublicSales, kycRecords] = await Promise.all([
             prisma.vestingEntry.findMany({
                 where: {
                     role: { in: ['SEED', 'PRIVATE'] }
@@ -415,8 +672,13 @@ app.get('/api/sales/log', async (req, res) => {
                     role: { startsWith: 'PUBLIC_' }
                 },
                 orderBy: { createdAt: 'desc' }
-            })
+            }),
+            prisma.kycVerification.findMany()
         ]);
+
+        const kycMap = new Map(
+            kycRecords.map((record) => [normalizeWallet(record.walletAddress), record])
+        );
 
         const normalizedManual = manualSales.map((sale) => ({
             ...sale,
@@ -442,7 +704,19 @@ app.get('/api/sales/log', async (req, res) => {
 
         deduped.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-        res.json(deduped);
+        const enriched = deduped.map((sale) => {
+            const kycRecord = kycMap.get(normalizeWallet(sale.address));
+            return {
+                ...sale,
+                kycProvider: kycRecord?.provider || null,
+                kycProviderLabel: kycRecord ? getProviderLabel(kycRecord.provider) : null,
+                kycVerifiedAt: kycRecord?.verifiedAt || null,
+                verificationMethod: kycRecord?.verificationMethod || null,
+                kycVerificationStatus: kycRecord?.status || null,
+            };
+        });
+
+        res.json(enriched);
     } catch (e) {
         console.error("Sales Log Fetch Error:", e);
         res.status(500).json({ error: "Failed to fetch sales log" });

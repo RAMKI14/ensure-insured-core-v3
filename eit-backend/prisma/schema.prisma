@@ -102,6 +102,25 @@ model ActivityLogArchive {
   @@index([action])
 }
 
+model KycVerification {
+  id                 Int      @id @default(autoincrement())
+  walletAddress      String   @unique
+  provider           String
+  credentialHash     String
+  verificationMethod String   @default("decentralized_identity")
+  status             String   @default("VERIFIED_PENDING_WHITELIST")
+  verifiedAt         DateTime @default(now())
+  approvedAt         DateTime?
+  approvedBy         String?
+  lastError          String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([provider])
+  @@index([status])
+  @@index([verifiedAt])
+}
+
 // NEW: Isolate Public Sales from manual Vesting/HR
 model PublicSale {
   id             Int      @id @default(autoincrement())

@@ -3,6 +3,27 @@ import { AlertTriangle } from 'lucide-react';
 import { MESSAGES } from '../constants/messages';
 import ProgressBar from './landing/ProgressBar';
 
+const KYC_OVERLAY_COPY = {
+  required: {
+    title: 'Identity Verification Required',
+    body: 'Verify to continue with this KYC-protected token sale.',
+    buttonLabel: 'Start Verification',
+    tone: 'text-amber-200',
+  },
+  error: {
+    title: 'Identity Verification Required',
+    body: 'Your last credential could not be verified. Start verification again to continue.',
+    buttonLabel: 'Start Verification',
+    tone: 'text-red-200',
+  },
+  pending: {
+    title: 'Verification Submitted',
+    body: 'Your wallet is awaiting whitelist approval. Check status or reopen the verification flow.',
+    buttonLabel: 'View Verification',
+    tone: 'text-sky-200',
+  },
+};
+
 const TokenSaleCard = ({
   account,
   isCorrectNetwork,
@@ -21,7 +42,8 @@ const TokenSaleCard = ({
   totalRaised,
   phaseInfo,
   activeReferrer,
-  ethPrice // <--- Receive Real Price
+  ethPrice, // <--- Receive Real Price
+  kycOverlay,
 }) => {
 
   const MIN_USD_LIMIT = 100;
@@ -56,9 +78,28 @@ const CRYPTO_ICONS = {
 
   const targetAmount = phaseInfo?.phaseTargetUSD || 15000000;
   const phaseTitle = phaseInfo?.phaseName || "Phase 1: Seed Round";
+  const overlayCopy = KYC_OVERLAY_COPY[kycOverlay?.state] || KYC_OVERLAY_COPY.required;
 
   return (
     <div className="bg-gray-800 p-8 rounded-xl shadow-2xl w-full border border-gray-700 relative overflow-hidden">
+      {kycOverlay?.active && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center rounded-xl bg-slate-950/80 p-6 backdrop-blur-md">
+          <div className="w-full max-w-sm rounded-2xl border border-amber-400/20 bg-slate-900/90 p-5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.45)]">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400/10 ring-1 ring-amber-400/20">
+              <AlertTriangle size={24} className="text-amber-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white">{overlayCopy.title}</h3>
+            <p className={`mt-2 text-sm leading-relaxed ${overlayCopy.tone}`}>{overlayCopy.body}</p>
+            <button
+              type="button"
+              onClick={kycOverlay.onOpen}
+              className="mt-5 w-full rounded-xl bg-amber-400 px-4 py-3 text-sm font-black text-black transition hover:bg-amber-300"
+            >
+              {overlayCopy.buttonLabel}
+            </button>
+          </div>
+        </div>
+      )}
       
       {/* PAUSE OVERLAY */}
       {isSalePaused && (
@@ -69,7 +110,7 @@ const CRYPTO_ICONS = {
             <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">{MESSAGES.SALE_PAUSED_TITLE}</h2>
             <p className="text-gray-400 max-w-[260px] mx-auto text-sm leading-relaxed mb-6">{MESSAGES.SALE_PAUSED_DESC}</p>
             <div className="px-3 py-1 bg-yellow-500/10 text-yellow-500 text-xs font-mono font-bold rounded border border-yellow-500/20 uppercase tracking-widest">
-                Status: Halted
+                Status: Sale Temporarily Paused
             </div>
         </div>
       )}

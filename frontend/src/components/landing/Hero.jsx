@@ -4,11 +4,13 @@ import ProgressBar from './ProgressBar';
 import UKCoolingOff from './UKCoolingOff';
 // 1. IMPORT REFERRAL WIDGET
 import ReferralWidget from '../ReferralWidget';
+import KycVerificationPanel from '../KycVerificationPanel';
 import heroBg from '../../assets/hero-bg.jpeg'; 
 import addresses from '../../frontend-config.json'; 
 
-const Hero = ({ totalRaised, phaseInfo, ukFirstSeen, account, activeReferrer, ...props }) => {
+const Hero = ({ totalRaised, phaseInfo, ukFirstSeen, account, activeReferrer, kycPanel, ...props }) => {
   // ^ Note: We extracted 'account' from props here so we can pass it to ReferralWidget
+  const showReferral = !kycPanel?.hideReferral;
 
   return (
     <section className="relative w-full min-h-screen flex flex-col justify-center pt-40 pb-20 lg:pt-52 lg:pb-32 overflow-x-hidden">
@@ -65,15 +67,24 @@ const Hero = ({ totalRaised, phaseInfo, ukFirstSeen, account, activeReferrer, ..
                     phaseInfo={phaseInfo}
                     account={account} // Pass account down too
                     activeReferrer={activeReferrer}
+                    kycOverlay={kycPanel?.overlay}
                     {...props} 
                 />
 
-                
+                {kycPanel?.modalVisible && (
+                  <div className="absolute inset-0 z-40 rounded-xl bg-slate-950/70 p-4 backdrop-blur-md">
+                    <div className="h-full overflow-y-auto">
+                      <KycVerificationPanel {...kycPanel} visible={true} />
+                    </div>
+                  </div>
+                )}
 
                 {/* 2. REFERRAL WIDGET (Placed directly below card) */}
-                <div className="mt-6 animate-fade-in-up">
-                    <ReferralWidget account={account} />
-                </div>
+                {showReferral && (
+                  <div className="mt-6 animate-fade-in-up">
+                      <ReferralWidget account={account} />
+                  </div>
+                )}
             </div>
         </div>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ethers } from 'ethers';
 import addresses from './frontend-config.json';
 import CrowdsaleABI from './EITCrowdsale.json';
@@ -8,7 +8,7 @@ import TokenABI from './EnsureInsuredToken.json';
 import { getReferralHoldingValue } from './utils/referralEligibility';
 
 // Logic Hooks
-import { useAccount, useChainId, usePublicClient } from 'wagmi';
+import { useAccount, useChainId, usePublicClient, useDisconnect } from 'wagmi';
 import { useEthersSigner } from './web3/useEthersSigner';
 
 // UI Components
@@ -23,6 +23,15 @@ import ComplianceModal from './components/landing/ComplianceModal';
 
 const ESTIMATED_ETH_PRICE = 2000; 
 const API_URL = "http://localhost:3001/api"; // Backend URL
+const WALLET_IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+const WALLET_ACTIVITY_STORAGE_KEY = "eit_wallet_last_activity_at";
+const WALLET_ACTIVITY_EVENTS = [
+  "pointerdown",
+  "keydown",
+  "scroll",
+  "touchstart",
+  "focus"
+];
 
 // Minimal Chainlink ABI
 const CHAINLINK_ABI = [
@@ -34,6 +43,10 @@ function App() {
   const chainId = useChainId();
   const signer = useEthersSigner();
   const publicClient = usePublicClient(); 
+  const { disconnect } = useDisconnect();
+  const idleTimerRef = useRef(null);
+  const lastActivityRef = useRef(0);
+  const disconnectingForIdleRef = useRef(false);
 
   // State Variables
   const [balances, setBalances] = useState({ ETH: "0.0", USDT: "0.0", USDC: "0.0" });
@@ -56,6 +69,52 @@ function App() {
   const [activeReferrer, setActiveReferrer] = useState(null);
   const [userTotalUSD, setUserTotalUSD] = useState(0n);
   const [maxContribution, setMaxContribution] = useState(0n);
+  const [kycProviders, setKycProviders] = useState([]);
+  const [selectedKycProvider, setSelectedKycProvider] = useState("civic_pass");
+  const [kycCredential, setKycCredential] = useState("");
+  const [showKycPrompt, setShowKycPrompt] = useState(false);
+  const [isKycModalOpen, setIsKycModalOpen] = useState(false);
+  const [kycPanelState, setKycPanelState] = useState("required");
+  const [kycError, setKycError] = useState("");
+  const [kycSubmitting, setKycSubmitting] = useState(false);
+
+  const clearIdleTimer = () => {
+    if (idleTimerRef.current) {
+      clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = null;
+    }
+  };
+
+  const stampWalletActivity = (timestamp = Date.now()) => {
+    lastActivityRef.current = timestamp;
+    localStorage.setItem(WALLET_ACTIVITY_STORAGE_KEY, String(timestamp));
+  };
+
+  const expireWalletSession = (reason = "idle") => {
+    if (!isConnected || disconnectingForIdleRef.current) return;
+
+    disconnectingForIdleRef.current = true;
+    clearIdleTimer();
+    localStorage.removeItem(WALLET_ACTIVITY_STORAGE_KEY);
+    setShowKycPrompt(false);
+    setIsKycModalOpen(false);
+    setKycPanelState("required");
+    setKycError("");
+    setStatus(
+      reason === "restore"
+        ? "⚠️ Wallet session expired due to inactivity. Please reconnect to continue."
+        : "⚠️ Wallet session timed out after inactivity. Please reconnect to continue."
+    );
+    setStatusColor("text-amber-400 font-bold");
+    disconnect();
+  };
+
+  const scheduleIdleDisconnect = (baseTimestamp = lastActivityRef.current || Date.now()) => {
+    clearIdleTimer();
+    const elapsed = Date.now() - baseTimestamp;
+    const remaining = Math.max(WALLET_IDLE_TIMEOUT_MS - elapsed, 0);
+    idleTimerRef.current = setTimeout(() => expireWalletSession("idle"), remaining);
+  };
 
   // --- 1. INITIAL FETCH (Price, Phase, Oracle) ---
   useEffect(() => {
@@ -109,9 +168,69 @@ function App() {
         }
     };
 
+    const fetchKycProviders = async () => {
+      try {
+        const res = await fetch(`${API_URL}/kyc/providers`);
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setKycProviders(data);
+          setSelectedKycProvider(data[0].key);
+        }
+      } catch (e) {
+        console.warn("KYC provider fetch failed", e);
+      }
+    };
+
     if (window.ethereum) fetchGlobalData();
     fetchPhaseInfo();
+    fetchKycProviders();
   }, []);
+
+  useEffect(() => {
+    if (!isConnected) {
+      disconnectingForIdleRef.current = false;
+      clearIdleTimer();
+      return;
+    }
+
+    const storedTimestamp = Number(localStorage.getItem(WALLET_ACTIVITY_STORAGE_KEY) || 0);
+    const initialTimestamp = storedTimestamp > 0 ? storedTimestamp : Date.now();
+    const isExpired = Date.now() - initialTimestamp >= WALLET_IDLE_TIMEOUT_MS;
+
+    if (isExpired) {
+      expireWalletSession("restore");
+      return;
+    }
+
+    stampWalletActivity(initialTimestamp);
+    scheduleIdleDisconnect(initialTimestamp);
+
+    const handleActivity = () => {
+      if (!document.hidden) {
+        stampWalletActivity();
+        scheduleIdleDisconnect();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        handleActivity();
+      }
+    };
+
+    WALLET_ACTIVITY_EVENTS.forEach((eventName) =>
+      window.addEventListener(eventName, handleActivity, { passive: true })
+    );
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearIdleTimer();
+      WALLET_ACTIVITY_EVENTS.forEach((eventName) =>
+        window.removeEventListener(eventName, handleActivity)
+      );
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isConnected, disconnect]);
 
   // --- SECURE REFERRAL CAPTURE ---
   useEffect(() => {
@@ -182,11 +301,106 @@ function App() {
     if (isConnected && signer) {
       updateUserData();
       checkCoolingOff(address); // Check UK status
+      if (isWhitelistEnabled && address) {
+        refreshKycStatus(address);
+      }
     } else {
       setBalances({ ETH: "0.0", USDT: "0.0", USDC: "0.0" });
       setUkFirstSeen(null);
+      setShowKycPrompt(false);
+      setIsKycModalOpen(false);
     }
   }, [isConnected, signer, chainId, address]);
+
+  useEffect(() => {
+    if (!address || !showKycPrompt || kycPanelState !== "pending") return;
+    const timer = setInterval(() => {
+      refreshKycStatus(address);
+    }, 15000);
+    return () => clearInterval(timer);
+  }, [address, showKycPrompt, kycPanelState]);
+
+  const refreshKycStatus = async (walletAddress = address) => {
+    if (!walletAddress) return null;
+    try {
+      const res = await fetch(`${API_URL}/kyc/status/${walletAddress}`);
+      const data = await res.json();
+      if (!res.ok) return null;
+
+      if (data.status === "WHITELISTED") {
+        setShowKycPrompt(false);
+        setIsKycModalOpen(false);
+        setKycPanelState("verified");
+        setKycError("");
+        setStatus("✅ Wallet successfully verified. You may proceed with the token purchase.");
+        setStatusColor("text-green-400 font-bold");
+      } else if (data.status === "VERIFIED_PENDING_WHITELIST") {
+        setShowKycPrompt(true);
+        setKycPanelState("pending");
+        setKycError("");
+      } else if (data.status === "REJECTED") {
+        setShowKycPrompt(true);
+        setKycPanelState("error");
+        setKycError(data.lastError || "Invalid credential");
+      } else {
+        setKycPanelState("required");
+      }
+
+      return data;
+    } catch (e) {
+      console.warn("KYC status refresh failed", e);
+      return null;
+    }
+  };
+
+  const handleProviderSelect = (providerKey, providerUrl) => {
+    setSelectedKycProvider(providerKey);
+    if (providerUrl) {
+      window.open(providerUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const handleVerifyKyc = async () => {
+    if (!address || !selectedKycProvider || !kycCredential.trim()) return;
+
+    setKycSubmitting(true);
+    setKycPanelState("verifying");
+    setKycError("");
+
+    try {
+      const res = await fetch(`${API_URL}/kyc/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          walletAddress: address,
+          provider: selectedKycProvider,
+          credential: kycCredential.trim(),
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setShowKycPrompt(true);
+        setIsKycModalOpen(true);
+        setKycPanelState("error");
+        setKycError(data.error || "Invalid credential");
+        return;
+      }
+
+      setKycPanelState("pending");
+      setShowKycPrompt(true);
+      setStatus("✅ Identity verified. Awaiting whitelist approval.");
+      setStatusColor("text-sky-300 font-bold");
+    } catch (e) {
+      console.error("KYC verify error:", e);
+      setShowKycPrompt(true);
+      setIsKycModalOpen(true);
+      setKycPanelState("error");
+      setKycError("Verification service is currently unavailable.");
+    } finally {
+      setKycSubmitting(false);
+    }
+  };
 
   // --- UK COMPLIANCE CHECK (Robust Waterfall) ---
   const checkCoolingOff = async (userAddr) => {
@@ -420,6 +634,13 @@ function App() {
           setStatus(MESSAGES.ERR_MIN_CONTRIBUTION || "⚠️ Below minimum contribution ($100)");
       } else if (errorMessage.includes("Not whitelisted")) {
           setStatus(MESSAGES.ERR_NOT_WHITELISTED);
+          setShowKycPrompt(true);
+          setIsKycModalOpen(false);
+          const record = await refreshKycStatus(address);
+          if (!record || record.status === "NOT_VERIFIED") {
+            setKycPanelState("required");
+            setKycError("");
+          }
       } else if (errorMessage.includes("Sale not active")) {
           setStatus(MESSAGES.ERR_SALE_NOT_ACTIVE);
       } else if (errorMessage.includes("Phase cap exceeded")) {
@@ -503,6 +724,27 @@ function App() {
 
         ukFirstSeen={ukFirstSeen}
         activeReferrer={activeReferrer} 
+        kycPanel={{
+          visible: isKycModalOpen && isWhitelistEnabled,
+          modalVisible: isKycModalOpen && isWhitelistEnabled,
+          state: kycPanelState,
+          errorMessage: kycError,
+          providers: kycProviders,
+          selectedProvider: selectedKycProvider,
+          credential: kycCredential,
+          onCredentialChange: setKycCredential,
+          onProviderSelect: handleProviderSelect,
+          onVerify: handleVerifyKyc,
+          onRefresh: () => refreshKycStatus(address),
+          isSubmitting: kycSubmitting,
+          onClose: () => setIsKycModalOpen(false),
+          overlay: {
+            active: isWhitelistEnabled && showKycPrompt && kycPanelState !== "verified",
+            state: kycPanelState,
+            onOpen: () => setIsKycModalOpen(true),
+          },
+          hideReferral: isWhitelistEnabled && kycPanelState !== "verified",
+        }}
       />
 
       <SectionSeparator />
