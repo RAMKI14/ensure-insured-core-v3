@@ -12,14 +12,15 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "ethers": "^6.16.0",
-    "express": "^5.2.1",
-    "geoip-lite": "^1.4.10"
+    "express": "^4.22.1",
+    "geoip-lite": "^1.4.10",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
     "@prisma/client": "^5.22.0",
-    "nodemon": "^3.1.11",
+    "nodemon": "^3.1.14",
     "prisma": "^5.22.0"
   }
 }

@@ -137,3 +137,21 @@ model PublicSale {
   timestamp      DateTime @default(now())
   note           String?
 }
+
+// Burn event log - records actual amounts burned and recycled
+model BurnLog {
+  id             Int      @id @default(autoincrement())
+  type           String   // REVENUE_BURN or STRATEGIC_BURN
+  totalAmount    Float    // Total EIT in the batch
+  burnedAmount   Float    // Actual EIT burned (25% for revenue, 100% for strategic)
+  recycledAmount Float    @default(0) // EIT recycled (75% for revenue, 0 for strategic)
+  region         String?  // Country/region code for revenue burns
+  batchRef       String?  // Auditable batch reference
+  reason         String?  // Reason for strategic burns
+  txHash         String   @unique
+  admin          String   // Wallet that executed the burn
+  timestamp      DateTime @default(now())
+
+  @@index([type])
+  @@index([timestamp])
+}

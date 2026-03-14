@@ -39,7 +39,7 @@ const CHAINLINK_ABI = [
 ];
 
 function App() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, connector } = useAccount();
   const chainId = useChainId();
   const signer = useEthersSigner();
   const publicClient = usePublicClient(); 
@@ -100,13 +100,21 @@ function App() {
     setIsKycModalOpen(false);
     setKycPanelState("required");
     setKycError("");
+    // Instead of setting status *before* disconnect, we use the disconnecting flag
+    // and rely on the useEffect(isConnected) to handle the UI state clearing.
+    if (connector) {
+        disconnect({ connector });
+    } else {
+        disconnect();
+    }
+    
+    // Set status immediately to show the user why they were disconnected
     setStatus(
       reason === "restore"
         ? "⚠️ Wallet session expired due to inactivity. Please reconnect to continue."
         : "⚠️ Wallet session timed out after inactivity. Please reconnect to continue."
     );
     setStatusColor("text-amber-400 font-bold");
-    disconnect();
   };
 
   const scheduleIdleDisconnect = (baseTimestamp = lastActivityRef.current || Date.now()) => {
@@ -304,11 +312,23 @@ function App() {
       if (isWhitelistEnabled && address) {
         refreshKycStatus(address);
       }
+      
+      // If we just reconnected, clear any old disconnect messages
+      if (status.includes("session expired") || status.includes("timed out")) {
+        setStatus(MESSAGES.READY);
+        setStatusColor("text-gray-400");
+      }
     } else {
       setBalances({ ETH: "0.0", USDT: "0.0", USDC: "0.0" });
       setUkFirstSeen(null);
       setShowKycPrompt(false);
       setIsKycModalOpen(false);
+      
+      // If we disconnected but NOT because of inactivity, set default ready status
+      if (!disconnectingForIdleRef.current) {
+        setStatus(MESSAGES.READY);
+        setStatusColor("text-gray-400");
+      }
     }
   }, [isConnected, signer, chainId, address]);
 
@@ -743,7 +763,7 @@ function App() {
             state: kycPanelState,
             onOpen: () => setIsKycModalOpen(true),
           },
-          hideReferral: isWhitelistEnabled && kycPanelState !== "verified",
+          hideReferral: isWhitelistEnabled && kycPanelState !== "verified" && userTotalUSD === 0n,
         }}
       />
 

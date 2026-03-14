@@ -940,6 +940,91 @@ app.get('/api/activity-logs', async (req, res) => {
     }
 });
 
+// ===================== BURN LOGS =====================
+
+// POST: Record a burn event
+app.post('/api/burn-logs', async (req, res) => {
+    try {
+        const { type, totalAmount, burnedAmount, recycledAmount, region, batchRef, reason, txHash, admin } = req.body;
+        
+        if (!type || !totalAmount || !burnedAmount || !txHash || !admin) {
+            return res.status(400).json({ error: "Missing required fields: type, totalAmount, burnedAmount, txHash, admin" });
+        }
+
+        const log = await prisma.burnLog.create({
+            data: {
+                type,
+                totalAmount: parseFloat(totalAmount),
+                burnedAmount: parseFloat(burnedAmount),
+                recycledAmount: parseFloat(recycledAmount || 0),
+                region: region || null,
+                batchRef: batchRef || null,
+                reason: reason || null,
+                txHash,
+                admin
+            }
+        });
+        
+        res.json(log);
+    } catch (e) {
+        if (e.code === 'P2002') {
+            return res.status(409).json({ error: "Burn log with this txHash already exists" });
+        }
+        console.error("❌ Error creating burn log:", e);
+        res.status(500).json({ error: "Failed to create burn log" });
+    }
+});
+
+// GET: Retrieve all burn logs + summary totals
+app.get('/api/burn-logs', async (req, res) => {
+    try {
+        const logs = await prisma.burnLog.findMany({
+            orderBy: { timestamp: 'desc' }
+        });
+        
+        const totalBurned = logs.reduce((sum, l) => sum + l.burnedAmount, 0);
+        const totalRecycled = logs.reduce((sum, l) => sum + l.recycledAmount, 0);
+        const totalBatchVolume = logs.reduce((sum, l) => sum + l.totalAmount, 0);
+        
+        res.json({
+            logs,
+            summary: {
+                totalBurned,
+                totalRecycled,
+                totalBatchVolume,
+                count: logs.length
+            }
+        });
+    } catch (e) {
+        console.error("❌ Error fetching burn logs:", e);
+        res.status(500).json({ error: "Failed to fetch burn logs" });
+    }
+});
+
+// GET: Quick summary for dashboard card
+app.get('/api/burn-summary', async (req, res) => {
+    try {
+        const result = await prisma.burnLog.aggregate({
+            _sum: {
+                burnedAmount: true,
+                recycledAmount: true,
+                totalAmount: true
+            },
+            _count: true
+        });
+        
+        res.json({
+            totalBurned: result._sum.burnedAmount || 0,
+            totalRecycled: result._sum.recycledAmount || 0,
+            totalBatchVolume: result._sum.totalAmount || 0,
+            count: result._count
+        });
+    } catch (e) {
+        console.error("❌ Error fetching burn summary:", e);
+        res.status(500).json({ error: "Failed to fetch burn summary" });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`🚀 SERVER RUNNING on http://localhost:${PORT}`);
 });
