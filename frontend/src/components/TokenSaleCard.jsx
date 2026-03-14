@@ -182,11 +182,18 @@ const CRYPTO_ICONS = {
             </p>
         )}
         
-        {/* Price Badge */}
+        {/* Price & Balance Badge */}
         <div className="mt-2 flex justify-between items-center">
-            <span className="bg-blue-900/50 px-2 py-1 rounded text-xs border border-blue-800 text-blue-200">
-                1 EIT = ${livePrice}
-            </span>
+            <div className="flex gap-2">
+                <span className="bg-blue-900/50 px-2 py-1 rounded text-xs border border-blue-800 text-blue-200 shadow-sm">
+                    1 EIT = ${livePrice}
+                </span>
+                {balances.EIT && parseFloat(balances.EIT) > 0 && (
+                    <span className="bg-emerald-900/30 px-2 py-1 rounded text-xs border border-emerald-800/50 text-emerald-300 flex items-center gap-1 shadow-sm">
+                        🏦 EIT Holding: {parseFloat(balances.EIT).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </span>
+                )}
+            </div>
             {currency === "ETH" && (
                 <span className="text-[10px] text-gray-500 font-mono">
                     Oracle ETH: ${CURRENT_ETH_PRICE.toLocaleString()}

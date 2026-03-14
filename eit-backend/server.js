@@ -682,24 +682,29 @@ app.get('/api/sales/log', async (req, res) => {
 
         const normalizedManual = manualSales.map((sale) => ({
             ...sale,
+            id: `vest-${sale.id}`,
             timestamp: sale.createdAt
         }));
 
         const normalizedPublic = publicSales.map((sale) => ({
             ...sale,
+            id: `pub-${sale.id}`,
             timestamp: sale.timestamp
         }));
 
         const normalizedLegacyPublic = legacyPublicSales.map((sale) => ({
             ...sale,
+            id: `vest-${sale.id}`,
             timestamp: sale.createdAt
         }));
 
-        // Deduplicate by txHash so old migrated public rows do not appear twice.
+        // Deduplicate by txHash (case-insensitive) so old migrated public rows do not appear twice.
         const combined = [...normalizedManual, ...normalizedPublic, ...normalizedLegacyPublic];
         const deduped = combined.filter((sale, index, list) => {
             if (!sale.txHash) return true;
-            return index === list.findIndex((candidate) => candidate.txHash === sale.txHash);
+            return index === list.findIndex((candidate) => 
+                candidate.txHash && candidate.txHash.toLowerCase() === sale.txHash.toLowerCase()
+            );
         });
 
         deduped.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -720,6 +725,34 @@ app.get('/api/sales/log', async (req, res) => {
     } catch (e) {
         console.error("Sales Log Fetch Error:", e);
         res.status(500).json({ error: "Failed to fetch sales log" });
+    }
+});
+
+// --- NEW: Targeted Investor Summary for Frontend ---
+app.get('/api/investor/total/:address', async (req, res) => {
+    try {
+        const address = normalizeWallet(req.params.address);
+        if (!ethers.isAddress(address)) {
+            return res.status(400).json({ error: 'Invalid wallet address' });
+        }
+
+        const [vestingEntries, publicSales] = await Promise.all([
+            prisma.$queryRaw`SELECT * FROM VestingEntry WHERE address = ${address} COLLATE NOCASE AND isRevoked = 0`,
+            prisma.$queryRaw`SELECT * FROM PublicSale WHERE address = ${address} COLLATE NOCASE`
+        ]);
+
+        const totalVesting = vestingEntries.reduce((sum, v) => sum + Number(v.amount || 0), 0);
+        const totalPublic = publicSales.reduce((sum, s) => sum + Number(s.amount || 0), 0);
+
+        res.json({
+            address,
+            totalEIT: totalVesting + totalPublic,
+            vestingEIT: totalVesting,
+            publicEIT: totalPublic
+        });
+    } catch (e) {
+        console.error("Investor Total Fetch Error:", e);
+        res.status(500).json({ error: "Failed to fetch investor total" });
     }
 });
 
@@ -802,10 +835,13 @@ app.get('/api/sales/phase-starts', async (req, res) => {
 // 3. Mark as Revoked (Sync DB with Blockchain)
 app.post('/api/vesting/revoke', async (req, res) => {
     try {
-        const { id } = req.body;
-        await prisma.vestingEntry.update({
-            where: { id: parseInt(id) },
-            data: { isRevoked: true }
+        const { address } = req.body;
+        await prisma.vestingEntry.updateMany({
+            where: { address: { equals: address } },
+            data: { 
+                isRevoked: true,
+                revokedAt: new Date()
+            }
         });
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: "Update failed" }); }

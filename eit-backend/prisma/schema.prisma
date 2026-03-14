@@ -18,60 +18,56 @@ model ConsentLog {
 }
 
 model ICOSettings {
-  id             Int      @id @default(1)
-  phaseName      String   @default("Phase 1: Seed Round")
-  phaseTargetUSD Float    @default(5000000.0) // $5 Million default
-  isActive       Boolean  @default(true)
-  phaseEndDate   DateTime?
-
-  // NEW: Referral Config
-  referralActive Boolean  @default(false)
-  referralPercent Float   @default(5.0) // e.g. 5%
+  id              Int       @id @default(autoincrement())
+  phaseName       String    @default("Phase 1: Seed Round")
+  phaseTargetUSD  Float     @default(5000000.0)
+  isActive        Boolean   @default(true)
+  referralActive  Boolean   @default(false)
+  referralPercent Float     @default(5.0)
+  phaseEndDate    DateTime?
 }
 
-// NEW TABLE Referal
 model Referral {
   id             Int      @id @default(autoincrement())
-  referrer       String   // Who sent the link
-  referee        String   // Who bought
-  purchaseAmount Float    // In USD/USDT
-  referrerReward Float    // <--- Renamed from rewardEIT
-  refereeBonus   Float    // <--- NEW: Extra tokens for the buyer
-  txHash         String   @unique // Proof of purchase
-  status         String   @default("PENDING") // PENDING, PAID, REJECTED
+  referrer       String
+  referee        String
+  purchaseAmount Float
+  referrerReward Float
+  refereeBonus   Float
+  txHash         String   @unique
+  status         String   @default("PENDING")
   timestamp      DateTime @default(now())
 }
 
-//Here we store person's details to whom we allocated the vesting tokens.
 model VestingEntry {
   id        Int      @id @default(autoincrement())
-  address   String   // The Wallet Address
-  name      String   // Employee Name
-  role      String   // FOUNDER, TEAM, PARTNER
-  category  String?  // KOL, Marketing Agency, etc.
-  note      String?  // Extra info
-  crypto    String?  // ETH, USDT, USDC
-  amount    Float    // Amount in EIT
-  amountUSD Float?   // USD Value at time of purchase
-  eitPrice  Float?   // EIT Price in USD
-  phase     String?  // Calculation Phase
-  country   String?  // Investor Country
-  kycStatus String?  // "Yes" or "No" for compliance
-  txHash    String   // Blockchain Proof
-  isRevoked Boolean  @default(false)
-  createdAt DateTime @default(now())
+  address   String
+  name      String
+  role      String
+  category  String?
+  note      String?
+  crypto    String?
+  amount    Float
+  amountUSD Float?
+  eitPrice  Float?
+  phase     String?
+  country   String?
+  txHash    String
+  isRevoked Boolean   @default(false)
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  kycStatus String?
 }
 
-// ActivityLog for Admin - enterprise edition
 model ActivityLog {
   id        Int      @id @default(autoincrement())
-  admin     String   // Wallet address
-  action    String   // e.g. "PAUSE_SALE"
-  details   String?  // Optional context
-  severity  String   @default("INFO") // INFO | WARNING | CRITICAL
-  ipAddress String?  // Admin's public IP at time of action
-  location  String?  // Geo-location (country/city)
-  txHash    String?  // Blockchain transaction hash (for on-chain actions)
+  admin     String
+  action    String
+  details   String?
+  severity  String   @default("INFO")
+  ipAddress String?
+  location  String?
+  txHash    String?
   timestamp DateTime @default(now())
 
   @@index([timestamp])
@@ -103,53 +99,51 @@ model ActivityLogArchive {
 }
 
 model KycVerification {
-  id                 Int      @id @default(autoincrement())
-  walletAddress      String   @unique
+  id                 Int       @id @default(autoincrement())
+  walletAddress      String    @unique
   provider           String
   credentialHash     String
-  verificationMethod String   @default("decentralized_identity")
-  status             String   @default("VERIFIED_PENDING_WHITELIST")
-  verifiedAt         DateTime @default(now())
+  verificationMethod String    @default("decentralized_identity")
+  status             String    @default("VERIFIED_PENDING_WHITELIST")
+  verifiedAt         DateTime  @default(now())
   approvedAt         DateTime?
   approvedBy         String?
   lastError          String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@index([provider])
   @@index([status])
   @@index([verifiedAt])
 }
 
-// NEW: Isolate Public Sales from manual Vesting/HR
 model PublicSale {
-  id             Int      @id @default(autoincrement())
-  address        String   // Buyer address
-  name           String   @default("Public Investor")
-  role           String   // PUBLIC_KYC or PUBLIC_OPEN
-  amount         Float    // Amount in EIT
-  amountUSD      Float?   // USD Value
-  eitPrice       Float?   // Price per EIT
-  txHash         String   @unique
-  phase          String?
-  country        String?
-  crypto         String?  // ETH, USDT, USDC
-  timestamp      DateTime @default(now())
-  note           String?
+  id        Int      @id @default(autoincrement())
+  address   String
+  name      String   @default("Public Investor")
+  role      String
+  amount    Float
+  amountUSD Float?
+  eitPrice  Float?
+  txHash    String   @unique
+  phase     String?
+  country   String?
+  crypto    String?
+  timestamp DateTime @default(now())
+  note      String?
 }
 
-// Burn event log - records actual amounts burned and recycled
 model BurnLog {
   id             Int      @id @default(autoincrement())
-  type           String   // REVENUE_BURN or STRATEGIC_BURN
-  totalAmount    Float    // Total EIT in the batch
-  burnedAmount   Float    // Actual EIT burned (25% for revenue, 100% for strategic)
-  recycledAmount Float    @default(0) // EIT recycled (75% for revenue, 0 for strategic)
-  region         String?  // Country/region code for revenue burns
-  batchRef       String?  // Auditable batch reference
-  reason         String?  // Reason for strategic burns
+  type           String
+  totalAmount    Float
+  burnedAmount   Float
+  recycledAmount Float    @default(0)
+  region         String?
+  batchRef       String?
+  reason         String?
   txHash         String   @unique
-  admin          String   // Wallet that executed the burn
+  admin          String
   timestamp      DateTime @default(now())
 
   @@index([type])

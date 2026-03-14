@@ -49,7 +49,7 @@ function App() {
   const disconnectingForIdleRef = useRef(false);
 
   // State Variables
-  const [balances, setBalances] = useState({ ETH: "0.0", USDT: "0.0", USDC: "0.0" });
+  const [balances, setBalances] = useState({ ETH: "0.0", USDT: "0.0", USDC: "0.0", EIT: "0" });
   const [livePrice, setLivePrice] = useState(0.01); 
   const [ethPrice, setEthPrice] = useState(0); // Real ETH Price
   const [isSalePaused, setIsSalePaused] = useState(false);
@@ -319,7 +319,7 @@ function App() {
         setStatusColor("text-gray-400");
       }
     } else {
-      setBalances({ ETH: "0.0", USDT: "0.0", USDC: "0.0" });
+      setBalances({ ETH: "0.0", USDT: "0.0", USDC: "0.0", EIT: "0" });
       setUkFirstSeen(null);
       setShowKycPrompt(false);
       setIsKycModalOpen(false);
@@ -466,10 +466,26 @@ function App() {
       const tokenContract = new ethers.Contract(addresses.USDT, UsdtABI.abi, signer);
       const usdtBal = await tokenContract.balanceOf(address);
       
+      const eitTokenContract = new ethers.Contract(addresses.EIT, TokenABI.abi, signer);
+      const eitBal = await eitTokenContract.balanceOf(address);
+      
+      // --- Aggregate DB Holdings (Seed/Private/Manual Public) ---
+      let dbEIT = 0;
+      try {
+          const dbRes = await fetch(`${API_URL}/investor/total/${address}`);
+          if (dbRes.ok) {
+              const dbData = await dbRes.json();
+              dbEIT = dbData.totalEIT || 0;
+          }
+      } catch (e) {
+          console.warn("Could not fetch DB EIT balance", e);
+      }
+
       setBalances({ 
         ETH: ethers.formatEther(ethBal), 
         USDT: ethers.formatUnits(usdtBal, 6), 
-        USDC: ethers.formatUnits(usdtBal, 6) 
+        USDC: ethers.formatUnits(usdtBal, 6),
+        EIT: (parseFloat(ethers.formatUnits(eitBal, 18)) + dbEIT).toString()
       });
       
       const crowdContract = new ethers.Contract(addresses.CROWDSALE, CrowdsaleABI.abi, signer);
