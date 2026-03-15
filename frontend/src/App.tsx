@@ -15,7 +15,6 @@ import { useEthersSigner } from './web3/useEthersSigner';
 import Navbar from './components/landing/Navbar';
 import Hero from './components/landing/Hero';
 import Features from './components/landing/Features';
-import Tokenomics from './components/landing/Tokenomics';
 import TokenomicsPremium from './components/landing/TokenomicsPremium';
 import Roadmap from './components/landing/Roadmap';
 import Footer from './components/landing/Footer';
@@ -879,9 +878,6 @@ function App() {
 
       <SectionSeparator />
       <TokenomicsPremium />
-      
-      <SectionSeparator />
-      <Tokenomics />
 
       <SectionSeparator />
       <Roadmap />
