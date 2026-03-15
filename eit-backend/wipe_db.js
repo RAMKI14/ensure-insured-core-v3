@@ -5,29 +5,39 @@ async function main() {
     console.log("🚀 STARTING DATABASE WIPE...");
 
     try {
-        // Delete all records from the tables
+        // 1. Referral
         const deleteReferrals = await prisma.referral.deleteMany();
         console.log(`✅ Cleared Referrals: ${deleteReferrals.count}`);
 
+        // 2. VestingEntry
         const deleteVesting = await prisma.vestingEntry.deleteMany();
         console.log(`✅ Cleared VestingEntries (Investors): ${deleteVesting.count}`);
 
+        // 3. PublicSale
         const deletePublicSales = await prisma.publicSale.deleteMany();
         console.log(`✅ Cleared PublicSales (Logs): ${deletePublicSales.count}`);
 
+        // 4. ActivityLog
         const deleteActivityLogs = await prisma.activityLog.deleteMany();
         console.log(`✅ Cleared ActivityLogs: ${deleteActivityLogs.count}`);
 
+        // 5. ActivityLogArchive
         const deleteArchivedActivityLogs = await prisma.activityLogArchive.deleteMany();
         console.log(`✅ Cleared ActivityLogArchive: ${deleteArchivedActivityLogs.count}`);
 
+        // 6. KycVerification
         const deleteKycVerifications = await prisma.kycVerification.deleteMany();
         console.log(`✅ Cleared KycVerifications: ${deleteKycVerifications.count}`);
 
+        // 7. ConsentLog
         const deleteConsentLogs = await prisma.consentLog.deleteMany();
         console.log(`✅ Cleared ConsentLogs: ${deleteConsentLogs.count}`);
 
-        // Reset ICOSettings to default
+        // 8. BurnLog
+        const deleteBurnLogs = await prisma.burnLog.deleteMany();
+        console.log(`✅ Cleared BurnLogs: ${deleteBurnLogs.count}`);
+
+        // 9. Reset ICOSettings to default
         const resetSettings = await prisma.iCOSettings.upsert({
             where: { id: 1 },
             update: {
