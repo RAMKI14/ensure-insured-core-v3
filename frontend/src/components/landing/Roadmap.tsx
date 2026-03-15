@@ -69,7 +69,7 @@ const Roadmap = () => {
   ];
 
   return (
-    <section id="roadmap" className="py-24 bg-gray-900 relative overflow-hidden">
+    <section id="roadmap" className="py-24 bg-black relative overflow-hidden">
       
       
       {/* --- BACKGROUND IMAGE LAYER --- */}
@@ -80,10 +80,10 @@ const Roadmap = () => {
             // CHANGE: 'object-contain' ensures the full width (Map + Globe) is always visible.
             // It prevents the image from zooming in and cutting off the sides.
             className="w-full h-full object-contain object-center opacity-40" 
-            onError={(e) => { e.target.style.display='none'; }}
+            onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }}
           />
           {/* Gradient Overlay to blend the image edges into the background */}
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-transparent to-gray-900"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black"></div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">

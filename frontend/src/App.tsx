@@ -20,15 +20,19 @@ import Roadmap from './components/landing/Roadmap';
 import Footer from './components/landing/Footer';
 import SectionSeparator from './components/landing/SectionSeparator';
 import ComplianceModal from './components/landing/ComplianceModal';
+import ReferralWidget from './components/ReferralWidget';
+import { Share2, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 const ESTIMATED_ETH_PRICE = 2000; 
 const API_URL = "http://localhost:3001/api"; // Backend URL
-const WALLET_IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+const WALLET_IDLE_TIMEOUT_MS = 15 * 60 * 1000;
 const WALLET_ACTIVITY_STORAGE_KEY = "eit_wallet_last_activity_at";
 const WALLET_ACTIVITY_EVENTS = [
   "pointerdown",
   "keydown",
   "scroll",
+  "mousemove",
+  "wheel",
   "touchstart",
   "focus"
 ];
@@ -61,10 +65,11 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isWhitelistEnabled, setIsWhitelistEnabled] = useState(false); // Default to false for UI testing locally
   const [isWhitelistingReady, setIsWhitelistingReady] = useState(false); // Track if contract data is fetched
+  const [showStatusPopup, setShowStatusPopup] = useState(false);
   
   // Advanced Features State
   const [totalRaised, setTotalRaised] = useState(0);
-  const [phaseInfo, setPhaseInfo] = useState({ phaseName: "Phase 1: Seed Round", phaseTargetUSD: 15000000 });
+  const [phaseInfo, setPhaseInfo] = useState({ phaseName: "Phase 1: Seed Round", phaseTargetUSD: 15000000, referralActive: false });
   const [ukFirstSeen, setUkFirstSeen] = useState(null);
   const [activeReferrer, setActiveReferrer] = useState(null);
   const [userTotalUSD, setUserTotalUSD] = useState(0n);
@@ -77,6 +82,7 @@ function App() {
   const [kycPanelState, setKycPanelState] = useState("required");
   const [kycError, setKycError] = useState("");
   const [kycSubmitting, setKycSubmitting] = useState(false);
+  const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
 
   const clearIdleTimer = () => {
     if (idleTimerRef.current) {
@@ -109,11 +115,11 @@ function App() {
     }
     
     // Set status immediately to show the user why they were disconnected
-    setStatus(
-      reason === "restore"
-        ? "⚠️ Wallet session expired due to inactivity. Please reconnect to continue."
-        : "⚠️ Wallet session timed out after inactivity. Please reconnect to continue."
-    );
+    const msg = reason === "restore"
+      ? "⚠️ Wallet session expired due to inactivity. Please reconnect."
+      : "⚠️ Wallet session timed out. Please reconnect to continue.";
+    
+    setStatus(msg);
     setStatusColor("text-amber-400 font-bold");
   };
 
@@ -127,6 +133,7 @@ function App() {
   // --- 1. INITIAL FETCH (Price, Phase, Oracle) ---
   useEffect(() => {
     const fetchGlobalData = async () => {
+        if (!window.ethereum) return;
         try {
             // Read-Only Provider
             const provider = new ethers.BrowserProvider(window.ethereum);
@@ -231,8 +238,17 @@ function App() {
     );
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
+    // Heartbeat check (every minute) to catch edge cases where setTimeout might be throttled or missed
+    const heartbeat = setInterval(() => {
+      const stored = Number(localStorage.getItem(WALLET_ACTIVITY_STORAGE_KEY) || 0);
+      if (stored > 0 && Date.now() - stored >= WALLET_IDLE_TIMEOUT_MS) {
+        expireWalletSession("idle");
+      }
+    }, 60000);
+
     return () => {
       clearIdleTimer();
+      clearInterval(heartbeat);
       WALLET_ACTIVITY_EVENTS.forEach((eventName) =>
         window.removeEventListener(eventName, handleActivity)
       );
@@ -264,6 +280,7 @@ function App() {
             try {
                 // 3. ON-CHAIN VERIFICATION
                 // We use a read-only provider to check the candidate's eligibility
+                if (!window.ethereum) return;
                 const provider = new ethers.BrowserProvider(window.ethereum);
                 const { valueUsd: valUSD } = await getReferralHoldingValue(
                     candidate,
@@ -317,6 +334,7 @@ function App() {
       if (status.includes("session expired") || status.includes("timed out")) {
         setStatus(MESSAGES.READY);
         setStatusColor("text-gray-400");
+        setShowStatusPopup(false);
       }
     } else {
       setBalances({ ETH: "0.0", USDT: "0.0", USDC: "0.0", EIT: "0" });
@@ -328,9 +346,24 @@ function App() {
       if (!disconnectingForIdleRef.current) {
         setStatus(MESSAGES.READY);
         setStatusColor("text-gray-400");
+        setShowStatusPopup(false);
       }
     }
   }, [isConnected, signer, chainId, address]);
+
+  // Handle status popup trigger
+  useEffect(() => {
+    if (status && status !== MESSAGES.READY && status !== "") {
+      setShowStatusPopup(true);
+      
+      // Auto-hide success messages after 6 seconds, keep errors longer or until closed
+      const isSuccess = status.includes("✅") || status.includes("successfully");
+      if (isSuccess) {
+        const timer = setTimeout(() => setShowStatusPopup(false), 6000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [status]);
 
   useEffect(() => {
     if (!address || !showKycPrompt || kycPanelState !== "pending") return;
@@ -508,7 +541,7 @@ function App() {
         setStatusColor("text-gray-400");
     }
 
-    if (!amount || isNaN(amount)) { 
+    if (!amount || isNaN(Number(amount))) { 
         setEstimatedEIT("0"); 
         return; 
     }
@@ -713,11 +746,30 @@ function App() {
 
   // --- RENDER ---
   return (
-    <div className="bg-gray-900 min-h-screen text-white font-sans selection:bg-blue-500 selection:text-white">
+    <div className="bg-black min-h-screen text-white font-sans selection:bg-blue-500 selection:text-white">
      
       <ComplianceModal /> 
 
-      <Navbar />
+      <Navbar 
+        account={address}
+        onReferClick={() => setIsReferralModalOpen(true)}
+        referralEnabled={phaseInfo.referralActive}
+      />
+
+      {/* GLOBAL REFERRAL MODAL */}
+      {isReferralModalOpen && (
+        <div 
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+          onClick={() => setIsReferralModalOpen(false)}
+        >
+          <div 
+            className="relative w-full max-w-md animate-zoom-in"
+            onClick={(e) => e.stopPropagation()} 
+          >
+            <ReferralWidget account={address} onClose={() => setIsReferralModalOpen(false)} />
+          </div>
+        </div>
+      )}
 
       {isWhitelistingReady && (
         isWhitelistEnabled ? (
@@ -793,6 +845,69 @@ function App() {
       <Roadmap />
       
       <Footer contractAddress={addresses.EIT} />
+
+      {/* TRENDY STATUS OVERLAY POP-UP */}
+      {showStatusPopup && status && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div 
+            className="w-full max-w-sm rounded-2xl border-2 border-white/10 bg-slate-900/90 p-8 text-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-zoom-in backdrop-blur-xl relative overflow-hidden group"
+          >
+            {/* Animated Background Glow */}
+            <div className={`absolute -top-24 -right-24 w-48 h-48 blur-[80px] rounded-full pointer-events-none opacity-50 group-hover:opacity-70 transition-opacity ${
+              status.includes("⚠️") || status.includes("Error") || status.includes("Failed") || status.includes("Limit")
+                ? "bg-red-500" 
+                : status.includes("✅") || status.includes("Success")
+                  ? "bg-green-500"
+                  : "bg-blue-500"
+            }`} />
+
+            <div className="relative z-10">
+              <div className={`mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl ring-1 shadow-lg ${
+                status.includes("⚠️") || status.includes("Error") || status.includes("Failed") || status.includes("Limit")
+                  ? "bg-red-500/10 ring-red-500/30 text-red-400" 
+                  : status.includes("✅") || status.includes("Success")
+                    ? "bg-green-500/10 ring-green-500/30 text-green-400"
+                    : "bg-blue-500/10 ring-blue-500/30 text-blue-400"
+              }`}>
+                {status.includes("⚠️") || status.includes("Error") || status.includes("Failed") || status.includes("Limit") ? (
+                  <AlertTriangle size={32} />
+                ) : status.includes("✅") || status.includes("Success") ? (
+                  <ShieldCheck size={32} />
+                ) : (
+                  <div className="w-8 h-8 rounded-full border-4 border-t-transparent border-blue-400 animate-spin" />
+                )}
+              </div>
+
+              <h3 className="text-xl font-black text-white mb-3 tracking-tight">
+                {status.includes("⚠️") || status.includes("Error") || status.includes("Failed") || status.includes("Limit") 
+                  ? "Transaction Alert" 
+                  : status.includes("waiting") || status.includes("Confirm") || status.includes("Processing")
+                    ? "Processing..."
+                    : "Update"}
+              </h3>
+
+              <p className={`text-sm leading-relaxed font-medium mb-8 ${
+                status.includes("⚠️") || status.includes("Error") || status.includes("Failed") || status.includes("Limit")
+                  ? "text-red-200/80"
+                  : "text-slate-200/80"
+              }`}>
+                {status}
+              </p>
+
+              <button
+                onClick={() => setShowStatusPopup(false)}
+                className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95 ${
+                  status.includes("⚠️") || status.includes("Error") || status.includes("Failed") || status.includes("Limit")
+                    ? "bg-red-500 hover:bg-red-400 text-white shadow-red-500/20"
+                    : "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20"
+                }`}
+              >
+                Okay, Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

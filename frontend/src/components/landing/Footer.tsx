@@ -56,7 +56,7 @@ const Footer = ({ contractAddress }) => {
 
   return (
     <>
-    <footer className="bg-gray-900 border-t border-gray-800 pt-16 pb-8">
+    <footer className="bg-black border-t border-white/5 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-5 gap-12 mb-12">
         
         {/* 1. BRAND COLUMN (Spans 2/5) */}
@@ -151,7 +151,7 @@ const Footer = ({ contractAddress }) => {
       </div>
 
       {/* COPYRIGHT */}
-      <div className="max-w-7xl mx-auto px-6 border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div className="max-w-7xl mx-auto px-6 border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
         <p className="text-xs text-gray-500">
             &copy; {new Date().getFullYear()} A Blocks Nexus Ltd. All rights reserved.
         </p>

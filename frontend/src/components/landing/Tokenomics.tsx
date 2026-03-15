@@ -85,7 +85,7 @@ const Tokenomics = () => {
   }
 
   return (
-    <section id="tokenomics" className="py-24 bg-gray-900 border-t border-gray-800 relative overflow-hidden">
+    <section id="tokenomics" className="py-24 bg-black border-t border-white/5 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
         
         {/* LEFT: CONTENT & STATS */}

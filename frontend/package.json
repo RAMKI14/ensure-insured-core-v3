@@ -13,23 +13,32 @@
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.2.10",
+    "@rollup/rollup-darwin-arm64": "^4.59.0",
+    "@tailwindcss/oxide-darwin-arm64": "^4.2.1",
     "@tanstack/react-query": "^5.90.12",
+    "clsx": "^2.1.1",
     "ethers": "^6.16.0",
     "lucide-react": "^0.562.0",
+    "motion": "^12.36.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "tailwind-merge": "^3.5.0",
     "viem": "^2.43.3",
     "wagmi": "^2.19.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@tailwindcss/vite": "^4.2.1",
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
     "globals": "^15.13.0",
-    "vite": "^5.4.11"
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.11",
+    "vite-plugin-svgr": "^4.5.0"
   }
 }

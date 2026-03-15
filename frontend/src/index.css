@@ -1,16 +1,23 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-dashboard: #000000;
+  --color-card: #121212;
+  --color-accent-purple: #E9B949;
+  --color-accent-gold: #FFCC40;
+  --color-accent-violet: #D9A11E;
+  --color-accent-pink: #FF4267;
+  --color-accent-blue: #FFD166;
+  --color-accent-olive: #9AB57F;
+}
 
 html, body, #root {
   height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
-  
-  justify-content: center;
- 
-  background-color: #111827; /* Matches gray-900 */
+  background-color: #000000;
+  color: #ffffff;
 }
 
 #root {

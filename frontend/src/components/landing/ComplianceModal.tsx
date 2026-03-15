@@ -102,7 +102,7 @@ const ComplianceModal = () => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 animate-in fade-in duration-300">
-      <div className="bg-gray-900 border border-gray-700 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden relative">
+      <div className="bg-black border border-white/10 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden relative">
         
         {/* HEADER */}
         <div className={`p-6 border-b flex items-center gap-4 ${isBanned ? "bg-red-900/20 border-red-900/50" : "bg-blue-900/20 border-blue-900/50"}`}>
@@ -120,10 +120,10 @@ const ComplianceModal = () => {
         </div>
 
         {/* CONTENT */}
-        <div className="p-8 space-y-6 bg-gray-900">
+        <div className="p-8 space-y-6 bg-black">
             
             {/* STATUS BOX */}
-            <div className={`flex items-center justify-between gap-3 p-3 rounded-lg border ${isBanned ? "bg-red-900/20 border-red-800" : "bg-gray-800 border-gray-700"}`}>
+            <div className={`flex items-center justify-between gap-3 p-3 rounded-lg border ${isBanned ? "bg-red-900/10 border-red-900/20" : "bg-white/5 border-white/10"}`}>
                 <div className="flex items-center gap-3">
                     <Globe size={20} className={isBanned ? "text-red-400" : "text-gray-400"} />
                     <span className="text-sm text-gray-300 flex items-center gap-2">

@@ -19,9 +19,9 @@ const ProgressBar = ({ raised, target, stage }) => {
     <div className="w-full max-w-md mx-auto mb-6 relative z-10"> 
       
       {/* Labels */}
-      <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-2 font-mono">
-        <span className="text-blue-400">{stage}</span>
-        <span className="text-gray-400">
+      <div className="flex justify-between items-baseline text-xs font-bold uppercase tracking-wider mb-2 font-mono">
+        <span className="text-blue-400 whitespace-nowrap">{stage}</span>
+        <span className="text-gray-400 whitespace-nowrap ml-4">
              {/* Display $0 if data isn't ready yet */}
              ${safeRaised.toLocaleString(undefined, {maximumFractionDigits: 0})} / <span className="text-white">${safeTarget.toLocaleString()}</span>
         </span>

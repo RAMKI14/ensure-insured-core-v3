@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Share2, Copy, Check, Lock, AlertCircle } from 'lucide-react'; // Added Lock, AlertCircle
+import { Share2, Copy, CheckCircle, Users, ExternalLink, X, Lock, AlertCircle, Check } from 'lucide-react';
 import { ethers } from 'ethers';
 import addresses from '../frontend-config.json';
 import TokenABI from '../EnsureInsuredToken.json'; // Need this to check balance
@@ -8,7 +8,7 @@ import { getReferralHoldingValue } from '../utils/referralEligibility';
 
 const API_URL = "http://localhost:3001/api"; 
 
-const ReferralWidget = ({ account }) => {
+const ReferralWidget = ({ account, onClose }: { account: string; onClose?: () => void }) => {
   const [copied, setCopied] = useState(false);
   const [rewardPercent, setRewardPercent] = useState(5);
   const [isActive, setIsActive] = useState(false);
@@ -125,8 +125,18 @@ const ReferralWidget = ({ account }) => {
 
   // --- RENDER UNLOCKED STATE ---
   return (
-    <div className="w-full max-w-md mx-auto mt-8 bg-gradient-to-br from-gray-800 to-gray-900 border border-blue-500/30 rounded-xl p-6 shadow-xl relative overflow-hidden group animate-fade-in-up">
+    <div className="w-full max-w-md mx-auto mt-6 bg-gradient-to-br from-gray-800 to-gray-900 border border-blue-500/30 rounded-xl p-6 shadow-xl relative overflow-hidden group animate-fade-in-up">
         
+        {/* Close Button */}
+        {onClose && (
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-20"
+          >
+            <X size={20} />
+          </button>
+        )}
+
         {/* Background Decoration */}
         <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
             <Share2 size={80} />
