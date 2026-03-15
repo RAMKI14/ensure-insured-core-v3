@@ -3,7 +3,7 @@ import React from 'react';
 // --- UPDATED IMPORTS (.jpeg) ---
 import feature1 from '../../assets/feature-1.png';
 import feature2 from '../../assets/feature-2.jpeg';
-import feature3 from '../../assets/feature-3.jpeg';
+import feature3 from '../../assets/feature-3.png';
 
 const Features = () => {
   const features = [

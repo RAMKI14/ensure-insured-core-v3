@@ -45,8 +45,13 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
     uint256 public constant MIN_ETH_PRICE = 1000 * 1e18;
     uint256 public constant MAX_ETH_PRICE = 20000 * 1e18;
 
+    
     mapping(address => bool) public isWhitelisted;
     mapping(address => uint256) public userTotalUSD;
+
+    // Whitelist enforcement toggle
+    bool public whitelistEnabled = true;
+    event WhitelistStatusChanged(bool enabled);
 
     mapping(uint256 => mapping(address => uint256)) public phasePurchased;
     mapping(uint256 => bool) public phaseClaimEnabled;
@@ -94,8 +99,10 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
     fallback() external payable { revert("Use buyWithNative()"); }
 
     modifier onlyWhitelisted() {
+    if (whitelistEnabled) {
         require(isWhitelisted[msg.sender], "Not whitelisted");
-        _;
+    }
+    _;
     }
 
     // ------------------------------------------------
@@ -105,7 +112,7 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
     function addPhase(uint256 targetUSD, uint256 priceUSD)
         external onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(saleState == SaleState.Active);
+        require(saleState == SaleState.Active, "Sale not active");
         require(targetUSD > 0, "Invalid phase target");
         require(priceUSD > 0, "Invalid phase price");
 
@@ -148,6 +155,13 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
             unchecked { ++i; }
         }
     }
+    function setWhitelistEnabled(bool enabled)
+        external
+        onlyRole(OPERATOR_ROLE)
+    {
+        whitelistEnabled = enabled;
+        emit WhitelistStatusChanged(enabled);
+    }
 
     function removeFromWhitelist(address[] calldata users)
         external onlyRole(OPERATOR_ROLE)
@@ -168,8 +182,8 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
     function addStablecoin(address tokenAddr, uint8 decimals)
         external onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(!supportedStable[tokenAddr]);
-        require(decimals <= 18);
+        require(!supportedStable[tokenAddr], "Stablecoin already supported");
+        require(decimals <= 18, "Invalid decimals");
 
         supportedStable[tokenAddr] = true;
         stablecoinDecimals[tokenAddr] = decimals;
@@ -183,7 +197,7 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
     function buyWithNative(uint256 minTokensOut)
         external payable nonReentrant whenNotPaused onlyWhitelisted
     {
-        require(saleState == SaleState.Active);
+        require(saleState == SaleState.Active || saleState == SaleState.SoftCapReached, "Sale not active");
         require(currentPhase < phases.length);
 
         uint256 price = _getOraclePrice();
@@ -197,9 +211,9 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
     function buyWithStablecoin(address stableToken, uint256 amount, uint256 minTokensOut)
         external nonReentrant whenNotPaused onlyWhitelisted
     {
-        require(supportedStable[stableToken]);
-        require(saleState == SaleState.Active);
-        require(currentPhase < phases.length);
+        require(supportedStable[stableToken], "Unsupported stablecoin");
+        require(saleState == SaleState.Active || saleState == SaleState.SoftCapReached, "Sale not active");
+        require(currentPhase < phases.length, "Invalid phase");
 
         IERC20(stableToken).safeTransferFrom(msg.sender, address(this), amount);
 
@@ -281,12 +295,13 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
     }
 
     function claimPhase(uint256 phaseId)
-        external nonReentrant whenNotPaused
+    external nonReentrant whenNotPaused
     {
-        require(phaseClaimEnabled[phaseId]);
+        require(saleState != SaleState.Refunding, "Refund mode");
+        require(phaseClaimEnabled[phaseId], "Claim disabled");
 
         uint256 amount = phasePurchased[phaseId][msg.sender];
-        require(amount > 0);
+        require(amount > 0, "Nothing to claim");
 
         phasePurchased[phaseId][msg.sender] = 0;
         token.safeTransfer(msg.sender, amount);
@@ -301,6 +316,8 @@ contract EITCrowdsale is AccessControl, ReentrancyGuard, Pausable {
     function enableRefunds()
         external onlyRole(DEFAULT_ADMIN_ROLE)
     {
+        require(saleState != SaleState.Active, "Sale still active");
+        
         require(totalRaisedUSD < SOFT_CAP);
         saleState = SaleState.Refunding;
     }

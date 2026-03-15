@@ -16,6 +16,7 @@ import Navbar from './components/landing/Navbar';
 import Hero from './components/landing/Hero';
 import Features from './components/landing/Features';
 import Tokenomics from './components/landing/Tokenomics';
+import TokenomicsPremium from './components/landing/TokenomicsPremium';
 import Roadmap from './components/landing/Roadmap';
 import Footer from './components/landing/Footer';
 import SectionSeparator from './components/landing/SectionSeparator';
@@ -100,27 +101,44 @@ function App() {
     if (!isConnected || disconnectingForIdleRef.current) return;
 
     disconnectingForIdleRef.current = true;
+    
+    // 1. Clear State
     clearIdleTimer();
     localStorage.removeItem(WALLET_ACTIVITY_STORAGE_KEY);
+    // Force clear wagmi/rainbowkit cache to prevent auto-reconnect
+    localStorage.removeItem("wagmi.store");
+    localStorage.removeItem("wagmi.connected");
+    
     setShowKycPrompt(false);
     setIsKycModalOpen(false);
-    setKycPanelState("required");
-    setKycError("");
-    // Instead of setting status *before* disconnect, we use the disconnecting flag
-    // and rely on the useEffect(isConnected) to handle the UI state clearing.
-    if (connector) {
-        disconnect({ connector });
-    } else {
-        disconnect();
-    }
+    setBalances({ ETH: "0.0", USDT: "0.0", USDC: "0.0", EIT: "0" });
     
-    // Set status immediately to show the user why they were disconnected
+    // 2. Disconnect
+    try {
+        if (connector) {
+            disconnect({ connector });
+        } else {
+            disconnect();
+        }
+    } catch (e) {
+        // Silently fail if disconnect throws, the reload/fallback will handle it
+    }
+
+    // 3. Set UI Message
     const msg = reason === "restore"
-      ? "⚠️ Wallet session expired due to inactivity. Please reconnect."
-      : "⚠️ Wallet session timed out. Please reconnect to continue.";
+      ? "⚠️ Your session has expired due to inactivity. Please reconnect."
+      : "⚠️ You have been logged out due to inactivity. Please reconnect to continue.";
     
     setStatus(msg);
     setStatusColor("text-amber-400 font-bold");
+    setShowStatusPopup(true);
+
+    // 4. Final Fallback: If still connected after 2 seconds, force reload
+    setTimeout(() => {
+        if (isConnected) {
+            window.location.reload();
+        }
+    }, 2000);
   };
 
   const scheduleIdleDisconnect = (baseTimestamp = lastActivityRef.current || Date.now()) => {
@@ -209,27 +227,46 @@ function App() {
     }
 
     const storedTimestamp = Number(localStorage.getItem(WALLET_ACTIVITY_STORAGE_KEY) || 0);
-    const initialTimestamp = storedTimestamp > 0 ? storedTimestamp : Date.now();
-    const isExpired = Date.now() - initialTimestamp >= WALLET_IDLE_TIMEOUT_MS;
+    const now = Date.now();
+    
+    // Logic: If we have an old timestamp, check if it's expired.
+    // HOWEVER, if this is a "fresh" connection for this specific page instance (lastActivityRef is 0),
+    // we should be more lenient or just reset it.
+    const isExpired = lastActivityRef.current === 0 
+      ? (storedTimestamp > 0 && now - storedTimestamp >= WALLET_IDLE_TIMEOUT_MS)
+      : (now - lastActivityRef.current >= WALLET_IDLE_TIMEOUT_MS);
 
-    if (isExpired) {
+    if (isExpired && storedTimestamp > 0) {
       expireWalletSession("restore");
       return;
     }
 
-    stampWalletActivity(initialTimestamp);
-    scheduleIdleDisconnect(initialTimestamp);
+    const connectionTimestamp = storedTimestamp > 0 && !isExpired ? storedTimestamp : now;
+    stampWalletActivity(connectionTimestamp);
+    scheduleIdleDisconnect(connectionTimestamp);
 
     const handleActivity = () => {
-      if (!document.hidden) {
-        stampWalletActivity();
-        scheduleIdleDisconnect();
+      if (document.hidden || disconnectingForIdleRef.current) return;
+      
+      const now = Date.now();
+      // Throttle storage updates to once every 10 seconds for performance
+      if (now - lastActivityRef.current > 10000) {
+        stampWalletActivity(now);
+        scheduleIdleDisconnect(now);
       }
     };
 
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        handleActivity();
+        // When coming back to page, check if we've already expired in the background
+        const stored = Number(localStorage.getItem(WALLET_ACTIVITY_STORAGE_KEY) || 0);
+        const elapsed = Date.now() - (stored || lastActivityRef.current);
+        
+        if (elapsed >= WALLET_IDLE_TIMEOUT_MS) {
+          expireWalletSession("restore");
+        } else {
+          handleActivity();
+        }
       }
     };
 
@@ -238,13 +275,16 @@ function App() {
     );
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // Heartbeat check (every minute) to catch edge cases where setTimeout might be throttled or missed
+    // Heartbeat check (every 10 seconds) to catch background throttling
     const heartbeat = setInterval(() => {
+      if (disconnectingForIdleRef.current) return;
+      
       const stored = Number(localStorage.getItem(WALLET_ACTIVITY_STORAGE_KEY) || 0);
-      if (stored > 0 && Date.now() - stored >= WALLET_IDLE_TIMEOUT_MS) {
+      const last = stored || lastActivityRef.current;
+      if (last > 0 && Date.now() - last >= WALLET_IDLE_TIMEOUT_MS) {
         expireWalletSession("idle");
       }
-    }, 60000);
+    }, 10000);
 
     return () => {
       clearIdleTimer();
@@ -332,9 +372,8 @@ function App() {
       
       // If we just reconnected, clear any old disconnect messages
       if (status.includes("session expired") || status.includes("timed out")) {
-        setStatus(MESSAGES.READY);
-        setStatusColor("text-gray-400");
-        setShowStatusPopup(false);
+        // Only clear if the user actually clicked or performed an action, but here we'll just not clear it automatically
+        // to avoid race conditions with the disconnect logic.
       }
     } else {
       setBalances({ ETH: "0.0", USDT: "0.0", USDC: "0.0", EIT: "0" });
@@ -838,6 +877,9 @@ function App() {
       <SectionSeparator />
       <Features />
 
+      <SectionSeparator />
+      <TokenomicsPremium />
+      
       <SectionSeparator />
       <Tokenomics />
 
