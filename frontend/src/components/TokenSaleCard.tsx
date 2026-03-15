@@ -77,7 +77,7 @@ const TokenSaleCard = ({
   const isInvalidAmount = inputVal <= 0;
 
   const targetAmount = phaseInfo?.phaseTargetUSD || 5000000;
-  
+
   // Header just shows PHASE X
   const phaseNumber = phaseInfo?.id || 1;
   const phaseTitle = `PHASE ${phaseNumber}`;
@@ -204,36 +204,37 @@ const TokenSaleCard = ({
           </p>
         )}
 
+        {/* MILESTONE MESSAGE */}
+        <div className="mb-2 text-center">
+          <span className="text-[9px] uppercase tracking-[0.2em] font-black text-blue-400/50">
+            Price increases at next milestone
+          </span>
+        </div>
+
         {/* Price & Balance Badge (Responsive Layout) */}
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <span className="bg-blue-900/50 px-3 py-1.5 rounded-full text-xs border border-blue-800 text-blue-200 shadow-sm whitespace-nowrap">
             1 EIT = ${livePrice}
           </span>
+
+          {/* Price badges contain EIT, Holding, and ETH info */}
           {balances.EIT && parseFloat(balances.EIT) > 0 && (
             <span className="bg-emerald-900/30 px-3 py-1.5 rounded-full text-xs border border-emerald-800/50 text-emerald-300 flex items-center gap-1.5 shadow-sm whitespace-nowrap">
               🏦 <span className="text-[10px] opacity-70">Holding:</span> {parseFloat(balances.EIT).toLocaleString(undefined, { maximumFractionDigits: 0 })}<span className="text-[10px] opacity-70">EIT</span>
             </span>
           )}
 
-          {currency === "ETH" && (
+          {/* ETH Price Badge (Commented out for now) */}
+          {/* {currency === "ETH" && (
             <span className="bg-white/5 px-3 py-1.5 rounded-full text-xs border border-white/10 text-gray-400 font-mono shadow-sm whitespace-nowrap">
               ETH: ${CURRENT_ETH_PRICE.toLocaleString()}
             </span>
-          )}
-
-          {/* Price badges contain EIT, Holding, and ETH info */}
+          )} */}
         </div>
       </div>
 
       <div className="mb-4">
         <ProgressBar raised={totalRaised} target={targetAmount} stage={phaseTitle} />
-      </div>
-
-      {/* MILESTONE MESSAGE */}
-      <div className="mb-2 text-center">
-        <span className="text-[9px] uppercase tracking-[0.2em] font-black text-blue-400/50">
-            Price increases at next milestone
-        </span>
       </div>
 
       <div className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-4 mb-6 text-center">
@@ -256,11 +257,10 @@ const TokenSaleCard = ({
       <button
         onClick={handleBuy}
         disabled={isLoading || !account || !isCorrectNetwork || isInsufficientBalance || isInvalidAmount || isSalePaused || isBelowMinimum}
-        className={`w-full py-6 rounded-xl font-black text-xl transition-all duration-300 shadow-[0_0_30px_rgba(34,197,94,0.2)] flex items-center justify-center min-h-[70px] uppercase tracking-wider ${
-          (isLoading || isInsufficientBalance || isInvalidAmount || !account || !isCorrectNetwork || isSalePaused || isBelowMinimum)
-            ? "bg-slate-800 cursor-not-allowed text-slate-500 opacity-60 grayscale border border-white/10"
-            : "bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 hover:from-green-400 hover:via-emerald-400 hover:to-teal-400 text-white shadow-[0_0_50px_rgba(34,197,94,0.4)] transform hover:-translate-y-1 active:scale-95 border-t border-white/20"
-        }`}
+        className={`w-full py-6 rounded-xl font-black text-xl transition-all duration-300 flex items-center justify-center min-h-[70px] uppercase tracking-wider ${(isLoading || isInsufficientBalance || isInvalidAmount || !account || !isCorrectNetwork || isSalePaused || isBelowMinimum)
+          ? "bg-slate-800 cursor-not-allowed text-slate-500 opacity-60 grayscale border border-white/10"
+          : "bg-emerald-600 hover:bg-emerald-500 text-white transform hover:-translate-y-1 active:scale-95 border-t border-white/20"
+          }`}
       >
         <div className="whitespace-nowrap flex items-center justify-center gap-2 flex-shrink-0 px-6">
           {isSalePaused
