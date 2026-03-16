@@ -87,8 +87,8 @@ const TokenomicsPremium = () => {
             glow: "rgba(34, 197, 94, 0.4)", // Green
             color: "#22C55E",
             items: [
-                { label: "Strategic Partners", subLabel: "Marketing & PR", value: "10.0", amount: "5", unit: "B", color: "#22C55E" },
-                { label: "Vesting Details", subLabel: "Cliff & Vesting Schedule", value: "", amount: "", unit: "", color: "#4ADE80" },
+                { label: "Strategic Partners", subLabel: "Marketing & PR\nCliff & Vesting Schedule", value: "10.0", amount: "5", unit: "B", color: "#22C55E" },
+
             ]
         },
         {
@@ -134,10 +134,10 @@ const TokenomicsPremium = () => {
                     </motion.div>
                     <div className="relative">
                         <motion.h2
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tight flex flex-wrap items-center justify-center gap-x-4 gap-y-2"
+                            className="text-4xl md:text-5xl font-extrabold text-white mb-6 tracking-tight flex flex-wrap items-center justify-center gap-x-4 gap-y-2"
                         >
                             <span>{TOKEN_TICKER}</span>
                             <span className="text-[#A855F7] pb-2">

@@ -1,186 +1,249 @@
 import React from 'react';
-import { MapPin, Globe, ShieldCheck, Rocket, ChevronRight } from 'lucide-react';
-
-// Direct path to public folder image
-const ROADMAP_IMAGE = "/images/roadmap.jpeg";
+import { motion } from 'framer-motion';
+import { MapPin, Globe, ShieldCheck, Rocket, ChevronRight, Activity } from 'lucide-react';
 
 const Roadmap = () => {
-  const phases = [
-    {
-      id: "PHASE 1",
-      title: "Foundation & India Pilot",
-      period: "Q4 2025 - Q1 2026",
-      color: "blue",
-      icon: <MapPin size={24} />,
-      status: "In Progress",
-      items: [
-        "Deploy EIT Token & Vesting Contracts (Sepolia/Polygon).",
-        "Secure IRDAI regulatory approval for Blockchain integration.",
-        "Launch Pilot in 2 States of India (10M+ Vehicles).",
-        "Integrate 5 Major Insurance Providers via API.",
-        "Seed Round Fundraising ($15M Target)."
-      ]
-    },
-    {
-      id: "PHASE 2",
-      title: "Pan-India Expansion",
-      period: "2026",
-      color: "green",
-      icon: <ShieldCheck size={24} />,
-      status: "Upcoming",
-      items: [
-        "Rollout to all 28 Indian States (150M+ Vehicles).",
-        "Achieve $50M+ Annual Platform Revenue (Fiat).",
-        "Activate 'Buyback & Burn' Engine using fiat profits.",
-        "Full integration with RTO & Traffic Police databases.",
-        "CEX Listing for public liquidity."
-      ]
-    },
-    {
-      id: "PHASE 3",
-      title: "Global Entry (MENA & SEA)",
-      period: "2027",
-      color: "orange",
-      icon: <Globe size={24} />,
-      status: "Planned",
-      items: [
-        "Establish Offshore HQ in BVI / SVG (Global Operations).", // <--- UPDATED
-        "Pilot launch in UAE & Thailand (Cross-border verification).",
-        "Localization of App (Arabic, Thai, Vietnamese).",
-        "Strategic Partnerships with Global Insurers (Allianz, AXA).",
-        "Expand Transaction Reserve for international liquidity."
-      ]
-    },
-    {
-      id: "PHASE 4",
-      title: "Global Standardization",
-      period: "2027+",
-      color: "purple",
-      icon: <Rocket size={24} />,
-      status: "Vision",
-      items: [
-        "Expansion into Europe & North America markets.",
-        "Establish EIT as the ISO Standard for digital insurance proof.",
-        "Transition governance to a decentralized DAO.",
-        "Full automation of claims settlement via Smart Contracts.",
-        "Target: 500M+ Vehicles Secured Globally."
-      ]
-    }
-  ];
+    // Phase Data with Tokenomics-Consistent Colors
+    const phases = [
+        {
+            id: "PHASE 1",
+            title: "Foundation & India Pilot",
+            period: "Q3 2026 - Q4 2026",
+            color: "#3B82F6", // Tokenomics Blue
+            glow: "rgba(59, 130, 246, 0.4)",
+            icon: <MapPin size={22} />,
+            status: "In Progress",
+            items: [
+                "Deploy EIT Token & Vesting Contracts.",
+                "Secure IRDAI regulatory approval for Blockchain.",
+                "Launch Pilot in 2 States of India (10M+ Vehicles).",
+                "Integrate 5 Major Insurance Providers via API.",
+                "Seed Round Fundraising ($15M Target)."
+            ]
+        },
+        {
+            id: "PHASE 2",
+            title: "Pan-India Expansion",
+            period: "Q2 2027",
+            color: "#22C55E", // Tokenomics Green
+            glow: "rgba(34, 197, 94, 0.4)",
+            icon: <ShieldCheck size={22} />,
+            status: "Upcoming",
+            items: [
+                "Rollout to all 28 Indian States (150M+ Vehicles).",
+                "Achieve $50M+ Annual Platform Revenue.",
+                "Activate 'Buyback & Burn' Engine via fiat profits.",
+                "Full integration with RTO & Traffic Police.",
+                "CEX Listing for public liquidity."
+            ]
+        },
+        {
+            id: "PHASE 3",
+            title: "Global Entry (MENA & SEA)",
+            period: "Q4 2027",
+            color: "#EAB308", // Tokenomics Yellow
+            glow: "rgba(234, 179, 8, 0.4)",
+            icon: <Globe size={22} />,
+            status: "Planned",
+            items: [
+                "Establish Offshore HQ in BVI / SVG.",
+                "Pilot launch in UAE & Thailand.",
+                "Localization of App (Arabic, Thai, Vietnamese).",
+                "Strategic Partnerships with Global Insurers.",
+                "Expand Transaction Reserve for liquidity."
+            ]
+        },
+        {
+            id: "PHASE 4",
+            title: "Global Standardization",
+            period: "2027+",
+            color: "#A855F7", // Tokenomics Purple
+            glow: "rgba(168, 85, 247, 0.4)",
+            icon: <Rocket size={22} />,
+            status: "Vision",
+            items: [
+                "Expansion into Europe & North America markets.",
+                "Establish EIT as the ISO Standard.",
+                "Transition governance to a decentralized DAO.",
+                "Automation of claims via Smart Contracts.",
+                "Target: 500M+ Vehicles Secured Globally."
+            ]
+        }
+    ];
 
-  return (
-    <section id="roadmap" className="py-24 bg-black relative overflow-hidden">
-      
-      
-      {/* --- BACKGROUND IMAGE LAYER --- */}
-      <div className="absolute inset-0 z-0 flex items-center justify-center">
-          <img 
-            src={ROADMAP_IMAGE} 
-            alt="Roadmap Background" 
-            // CHANGE: 'object-contain' ensures the full width (Map + Globe) is always visible.
-            // It prevents the image from zooming in and cutting off the sides.
-            className="w-full h-full object-contain object-center opacity-40" 
-            onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }}
-          />
-          {/* Gradient Overlay to blend the image edges into the background */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black"></div>
-      </div>
+    return (
+        <section id="roadmap" className="py-20 bg-[#050505] relative overflow-hidden font-sans">
+            {/* Atmosphere Layer - No Image */}
+            <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+                <div className="absolute top-1/4 -left-20 w-[800px] h-[800px] bg-blue-600/5 blur-[160px] rounded-full"></div>
+                <div className="absolute bottom-1/4 -right-20 w-[800px] h-[800px] bg-purple-600/5 blur-[160px] rounded-full"></div>
+            </div>
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
-        
-        {/* Header */}
-        <div className="text-center mb-20">
-          <div className="inline-block px-3 py-1 mb-4 border border-blue-500/30 rounded-full bg-blue-500/10 text-blue-400 text-xs font-bold uppercase tracking-wider">
-            The Journey
-          </div>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6">
-            Roadmap to <br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Global Adoption</span>
-          </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-            A phased approach to digitizing insurance enforcement, starting with India's 300M vehicles.
-          </p>
-        </div>
+            <div className="max-w-7xl mx-auto px-6 relative z-10">
+                {/* Header - Consistent with Tokenomics */}
+                <div className="flex flex-col items-center mb-16 text-center pointer-events-none">
+                    <motion.div
+                        initial={{ opacity: 0, y: 15 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 border border-blue-500/20 rounded-full bg-blue-500/5 text-blue-400 text-[10px] font-black uppercase tracking-[0.4em]"
+                    >
+                        <Activity size={12} className="text-blue-500 animate-pulse" />
+                        Strategic Trajectory
+                    </motion.div>
+                    <motion.h2
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="text-4xl md:text-5xl font-extrabold text-white mb-6 tracking-tight"
+                    >
+                        Roadmap to <br />
+                        <span className="text-white">Global </span>
+                        <span className="text-[#A855F7]">Adoption</span>
+                    </motion.h2>
+                    <p className="text-gray-400 max-w-2xl mx-auto text-xl font-medium leading-relaxed opacity-60">
+                        A phased evolution starting from India's pilot toward the worldwide
+                        standard for trustless insurance enforcement.
+                    </p>
+                </div>
 
-        {/* TIMELINE CONTAINER */}
-        <div className="relative">
-            {/* The Central Line */}
-            <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 via-purple-500 to-gray-800 rounded-full md:-translate-x-1/2"></div>
+                {/* Timeline Engine */}
+                <div className="relative">
+                    {/* The "Orbit" Line - Subtle & Premium */}
+                    <div className="absolute left-8 md:left-1/2 top-4 bottom-4 w-px bg-gradient-to-b from-blue-500/5 via-purple-500/20 to-transparent md:-translate-x-1/2"></div>
 
-            <div className="space-y-12 md:space-y-24">
-                {phases.map((phase, index) => {
-                    const isEven = index % 2 === 0;
-                    
-                    const themeColor = {
-                        blue: "text-blue-400 border-blue-500/30 bg-blue-500/10",
-                        green: "text-green-400 border-green-500/30 bg-green-500/10",
-                        orange: "text-orange-400 border-orange-500/30 bg-orange-500/10",
-                        purple: "text-purple-400 border-purple-500/30 bg-purple-500/10",
-                    }[phase.color];
+                    <div className="space-y-12 md:space-y-16">
+                        {phases.map((phase, index) => {
+                            const isEven = index % 2 === 0;
 
-                    const glowColor = {
-                        blue: "shadow-[0_0_20px_rgba(59,130,246,0.3)]",
-                        green: "shadow-[0_0_20px_rgba(34,197,94,0.3)]",
-                        orange: "shadow-[0_0_20px_rgba(249,115,22,0.3)]",
-                        purple: "shadow-[0_0_20px_rgba(168,85,247,0.3)]",
-                    }[phase.color];
+                            return (
+                                <div key={index} className={`relative flex items-center ${isEven ? "md:flex-row" : "md:flex-row-reverse"}`}>
 
-                    return (
-                        <div key={index} className={`relative flex items-center ${isEven ? "md:flex-row" : "md:flex-row-reverse"}`}>
-                            
-                            {/* DOT ON LINE */}
-                            <div className={`absolute left-8 md:left-1/2 w-4 h-4 rounded-full border-4 border-gray-900 bg-${phase.color}-500 z-10 md:-translate-x-1/2 -translate-x-1/2 ${index === 0 ? "animate-ping" : ""}`}></div>
-                            
-                            {/* SPACER */}
-                            <div className="hidden md:block w-1/2"></div>
+                                    {/* Pivot Point */}
+                                    <div className="absolute left-8 md:left-1/2 w-3 h-3 rounded-full bg-black border-2 border-white/10 z-20 md:-translate-x-1/2 -translate-x-1/2 shadow-[0_0_15px_rgba(255,255,255,0.05)]">
+                                        <motion.div
+                                            animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.7, 0.3] }}
+                                            transition={{ duration: 4, repeat: Infinity }}
+                                            className="absolute inset-0 rounded-full"
+                                            style={{ backgroundColor: phase.color }}
+                                        />
+                                    </div>
 
-                            {/* CONTENT CARD */}
-                            <div className={`w-full md:w-1/2 pl-20 md:pl-0 ${isEven ? "md:pr-12" : "md:pl-12"}`}>
-                                <div className={`relative p-8 rounded-2xl bg-gray-800/90 border ${themeColor.split(" ")[1]} backdrop-blur-md transition-all duration-300 hover:-translate-y-1 ${index === 0 ? glowColor : "hover:shadow-lg"}`}>
-                                    
-                                    {/* Arrow */}
-                                    <div className={`hidden md:block absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-gray-800 border-l border-b ${themeColor.split(" ")[1]} rotate-45 ${isEven ? "-right-2.5 border-r-0 border-t-0" : "-left-2.5 border-l-1 border-b-1"}`}></div>
+                                    <div className="hidden md:block w-1/2"></div>
 
-                                    {/* Card Header */}
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className={`p-3 rounded-xl ${themeColor}`}>
-                                            {phase.icon}
-                                        </div>
-                                        <div className="text-right">
-                                            <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${themeColor.split(" ")[0]}`}>
-                                                {phase.id}
+                                    {/* Premium Content Card */}
+                                    <div className={`w-full md:w-1/2 pl-10 md:pl-0 ${isEven ? "md:pl-2" : "md:pr-2"}`}>
+                                        <motion.div
+                                            initial={{ opacity: 0, x: isEven ? 40 : -40 }}
+                                            whileInView={{ opacity: 1, x: 0 }}
+                                            viewport={{ once: true, margin: "-100px" }}
+                                            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                                            className="group relative"
+                                        >
+                                            <div className="relative overflow-hidden rounded-[2rem] border border-white/5 bg-[#0a0a0a]/90 backdrop-blur-3xl p-8 transition-all duration-700 hover:border-white/20 hover:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)]">
+
+                                                {/* Header Style consistent with Tokenomics Cards */}
+                                                <div className="flex justify-between items-start mb-8">
+                                                    <div>
+                                                        <h4 className="text-[11px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-2">
+                                                            {phase.id}
+                                                        </h4>
+                                                        <div className="text-white font-black text-sm tracking-widest opacity-30">{phase.period}</div>
+                                                    </div>
+                                                    <div
+                                                        className="p-3 rounded-xl bg-white/5 transition-all duration-500 group-hover:bg-white/10 shadow-2xl"
+                                                        style={{ color: phase.color }}
+                                                    >
+                                                        {phase.icon}
+                                                    </div>
+                                                </div>
+
+                                                <h3 className="text-3xl font-black text-white mb-6 leading-tight tracking-tight">
+                                                    {phase.title}
+                                                </h3>
+
+                                                {/* High-Tracking Premium Typography */}
+                                                <div className="space-y-4">
+                                                    {phase.items.map((item, i) => (
+                                                        <div key={i} className="flex items-start gap-4">
+                                                            <div
+                                                                className="mt-2.5 w-1.5 h-1.5 rounded-full shrink-0 opacity-20 group-hover:opacity-100 transition-opacity"
+                                                                style={{ backgroundColor: phase.color }}
+                                                            />
+                                                            <p className="text-[12px] font-bold tracking-widest text-gray-500 leading-relaxed group-hover:text-gray-300 transition-colors">
+                                                                {item}
+                                                            </p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                {/* Institutional Footer */}
+                                                <div className="mt-8 pt-8 border-t border-white/5 flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div
+                                                            className={`w-2 h-2 rounded-full ${index === 0 ? "animate-pulse" : "opacity-20"}`}
+                                                            style={{ backgroundColor: phase.color, boxShadow: `0 0 10px ${phase.color}` }}
+                                                        />
+                                                        <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">{phase.status}</span>
+                                                    </div>
+                                                    <ChevronRight size={14} className="text-white/10 group-hover:text-white/40 group-hover:translate-x-1 transition-all" />
+                                                </div>
+
+                                                {/* Ambient Hover Glow (Tokenomics Style) */}
+                                                <div
+                                                    className="absolute -inset-24 opacity-0 group-hover:opacity-10 transition-opacity duration-1000 blur-3xl pointer-events-none"
+                                                    style={{ background: `radial-gradient(circle at center, ${phase.glow}, transparent 70%)` }}
+                                                />
                                             </div>
-                                            <div className="text-white font-mono text-sm opacity-80">{phase.period}</div>
-                                        </div>
+                                        </motion.div>
                                     </div>
-
-                                    <h3 className="text-2xl font-bold text-white mb-4">{phase.title}</h3>
-                                    
-                                    <ul className="space-y-3">
-                                        {phase.items.map((item, i) => (
-                                            <li key={i} className="flex items-start gap-3 text-gray-400 text-sm">
-                                                <ChevronRight size={16} className={`mt-0.5 shrink-0 ${themeColor.split(" ")[0]}`} />
-                                                <span>{item}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-
-                                    <div className="mt-6 pt-4 border-t border-gray-700/50 flex items-center gap-2">
-                                        <div className={`w-2 h-2 rounded-full ${index === 0 ? "bg-green-500 animate-pulse" : "bg-gray-600"}`}></div>
-                                        <span className="text-xs font-bold text-gray-500 uppercase">{phase.status}</span>
-                                    </div>
-
                                 </div>
-                            </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Economic Infrastructure Footer */}
+                <div className="mt-32 text-center relative pt-40 pb-20 border-t border-white/5">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-blue-500/5 blur-[80px] rounded-full"></div>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        whileHover="hover"
+                        className="cursor-default group relative overflow-hidden inline-block px-12"
+                    >
+                        <p className="text-blue-500 font-bold text-[10px] uppercase tracking-[1em] mb-8 opacity-50">Institutional Excellence</p>
+                        
+                        <div className="relative">
+                            <motion.h4 
+                                variants={{
+                                    hover: {
+                                        letterSpacing: "0.15em",
+                                        transition: { duration: 0.8, ease: "circOut" }
+                                    }
+                                }}
+                                className="text-5xl md:text-7xl font-extrabold text-white/5 tracking-tighter uppercase leading-none select-none"
+                            >
+                                EIT ECO SYSTEM
+                            </motion.h4>
+
+                            {/* Glimmer Scanner Effect */}
+                            <motion.div 
+                                variants={{
+                                    hover: {
+                                        x: ["-100%", "200%"],
+                                        transition: { duration: 1.5, repeat: Infinity, ease: "linear" }
+                                    }
+                                }}
+                                className="absolute inset-0 top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full pointer-events-none"
+                            />
                         </div>
-                    );
-                })}
+                    </motion.div>
+                </div>
             </div>
-            </div>
-        </div>
-        
-    </section>
-  );
+        </section>
+    );
 };
 
 export default Roadmap;

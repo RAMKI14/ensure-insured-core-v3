@@ -42,9 +42,10 @@ const Features = () => {
           <div className="inline-block px-3 py-1 mb-4 border border-blue-500/30 rounded-full bg-blue-500/10 text-blue-400 text-xs font-bold uppercase tracking-wider">
             Core Technology
           </div>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6">
+          <h2 className="text-5xl md:text-6xl font-extrabold text-white mb-6">
             The Infrastructure of <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Trustless Enforcement</span>
+            <span className="text-white">Trustless </span>
+            <span className="text-[#A855F7]">Enforcement</span>
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto text-lg">
             We replace manual verification with cryptographic certainty.
