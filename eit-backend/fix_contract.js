@@ -2,11 +2,11 @@ const { ethers } = require('ethers');
 const fs = require('fs');
 
 async function main() {
-    const config = JSON.parse(fs.readFileSync('/Users/ramki/Desktop/eit-final-v2/frontend/src/frontend-config.json', 'utf8'));
-    const abi = JSON.parse(fs.readFileSync('/Users/ramki/Desktop/eit-final-v2/frontend/src/EITCrowdsale.json', 'utf8')).abi;
+    const config = JSON.parse(fs.readFileSync('./frontend-config.json', 'utf8'));
+    const abi = JSON.parse(fs.readFileSync('./frontend/src/EITCrowdsale.json', 'utf8')).abi;
     
     // Load Private Key
-    const env = fs.readFileSync('/Users/ramki/Desktop/eit-final-v2/.env', 'utf8');
+    const env = fs.readFileSync('./.env', 'utf8');
     const privateKeyMatch = env.match(/PRIVATE_KEY=([a-f0-9]+)/i);
     if (!privateKeyMatch) throw new Error("Private key not found in .env");
     const privateKey = privateKeyMatch[1];

@@ -76,7 +76,7 @@ const ReferralStats: React.FC<ReferralStatsProps> = ({ address, icoStatus }) => 
                             </p>
                         ) : totalInvested >= 100 ? (
                             <p className="text-sm text-gray-500 font-medium leading-relaxed">
-                                Invite your network to join EIT. You'll earn <span className="text-white font-bold">5% Commission</span> on every purchase they make, and they get a <span className="text-white font-bold">5% Bonus</span>!
+                                Invite your network to join EIT. You'll earn <span className="text-white font-bold">{icoStatus?.referralPercent || 5}% Commission</span> on every purchase they make, and they get a <span className="text-white font-bold">{icoStatus?.referralPercent || 5}% Bonus</span>!
                             </p>
                         ) : (
                             <p className="text-sm text-amber-500/80 font-bold leading-relaxed border border-amber-500/20 bg-amber-500/5 p-4 rounded-2xl">

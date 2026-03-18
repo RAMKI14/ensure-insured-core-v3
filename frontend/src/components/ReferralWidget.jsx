@@ -4,6 +4,7 @@ import { ethers } from 'ethers';
 import addresses from '../frontend-config.json';
 import TokenABI from '../EnsureInsuredToken.json'; // Need this to check balance
 import CrowdsaleABI from '../EITCrowdsale.json'; // Need this to check price
+import { getReferralHoldingValue } from '../utils/referralEligibility';
 
 const API_URL = "http://localhost:3001/api"; 
 
@@ -41,19 +42,13 @@ const ReferralWidget = ({ account }) => {
 
             // B. Check User Eligibility (On-Chain)
             const provider = new ethers.BrowserProvider(window.ethereum);
-            const tokenContract = new ethers.Contract(addresses.EIT, TokenABI.abi, provider);
-            const crowdContract = new ethers.Contract(addresses.CROWDSALE, CrowdsaleABI.abi, provider);
-
-            // Get Balance
-            const balanceWei = await tokenContract.balanceOf(account);
-            const balance = parseFloat(ethers.formatEther(balanceWei));
-
-            // Get Price
-            const priceWei = await crowdContract.pricePerTokenUSD();
-            const price = parseFloat(ethers.formatEther(priceWei));
-
-            // Calculate Value
-            const valUSD = balance * price;
+            const { valueUsd: valUSD } = await getReferralHoldingValue(
+                account,
+                provider,
+                addresses,
+                TokenABI,
+                CrowdsaleABI
+            );
             setCurrentValueUSD(valUSD);
 
             if (valUSD >= MIN_HOLDING_USD) {
