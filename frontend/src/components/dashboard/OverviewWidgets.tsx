@@ -105,10 +105,10 @@ const OverviewWidgets: React.FC<OverviewWidgetsProps> = ({ address }) => {
             </div>
 
             {/* Middle Row: Progress & Status */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6">
                 {/* ICO Status Card */}
-                <div className="lg:col-span-2 bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/5 rounded-[2rem] p-8 flex flex-col md:flex-row gap-8 items-center">
-                    <div className="w-48 h-48 rounded-full border-8 border-white/5 flex items-center justify-center relative">
+                <div className="bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/5 rounded-[2.5rem] p-10 flex flex-col md:flex-row gap-12 items-center">
+                    <div className="w-56 h-56 rounded-full border-8 border-white/5 flex items-center justify-center relative shadow-2xl">
                         <svg className="w-full h-full -rotate-90">
                             <circle
                                 cx="50%" cy="50%" r="42%"
@@ -125,7 +125,7 @@ const OverviewWidgets: React.FC<OverviewWidgetsProps> = ({ address }) => {
                             <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest px-4 text-center">
                                 {icoStatus?.isActive ? "Active Stage" : "Current Status"}
                             </p>
-                            <h4 className={`font-black text-white tracking-tight ${(!icoStatus || !icoStatus.isActive || !icoStatus.phaseName) ? 'text-lg' : 'text-2xl'}`}>
+                            <h4 className={`font-black text-white tracking-tight ${(!icoStatus || !icoStatus.isActive || !icoStatus.phaseName) ? 'text-lg' : 'text-3xl'}`}>
                                 {!icoStatus || icoStatus.id === undefined || !icoStatus.phaseName
                                     ? "No Sale Yet"
                                     : !icoStatus.isActive
@@ -136,20 +136,20 @@ const OverviewWidgets: React.FC<OverviewWidgetsProps> = ({ address }) => {
                         </div>
                     </div>
 
-                    <div className="flex-1 space-y-6">
+                    <div className="flex-1 space-y-8">
                         <div>
-                            <div className="flex items-center gap-2 mb-2">
-                                <Target size={16} className="text-blue-400" />
-                                <h3 className="text-lg font-black text-white tracking-tight">
+                            <div className="flex items-center gap-2 mb-3">
+                                <Target size={20} className="text-blue-400" />
+                                <h3 className="text-2xl font-black text-white tracking-tight">
                                     {!icoStatus || icoStatus.id === undefined || !icoStatus.phaseName
-                                        ? "No Sale Yet"
+                                        ? "No Active Phase"
                                         : !icoStatus.isActive
-                                            ? "No Active"
-                                            : (icoStatus?.phaseName?.split(':')?.[0] || "Phase 2")
+                                            ? "ICO Not Started"
+                                            : (icoStatus?.phaseName || "Stage 1")
                                     }
                                 </h3>
                             </div>
-                            <p className="text-sm text-gray-400 font-medium">
+                            <p className="text-base text-gray-400 font-medium leading-relaxed max-w-2xl">
                                 {!icoStatus || !icoStatus.phaseName
                                     ? "Waiting for the official launch of the next investment phase. Stay tuned for updates."
                                     : `The current round is proceeding at a total target of `
@@ -161,33 +161,20 @@ const OverviewWidgets: React.FC<OverviewWidgetsProps> = ({ address }) => {
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
-                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Current Price</p>
-                                <p className="text-xl font-black text-white">
+                        <div className="flex flex-wrap gap-6">
+                            <div className="bg-white/5 rounded-3xl p-6 border border-white/5 min-w-[200px] flex-1">
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">Current Price</p>
+                                <p className="text-3xl font-black text-white">
                                     {price > 0 ? `$${price.toFixed(4)}` : "TBA"}
                                 </p>
                             </div>
-                            <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
-                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Next Price</p>
-                                <p className="text-xl font-black text-gray-400">
+                            <div className="bg-white/5 rounded-3xl p-6 border border-white/5 min-w-[200px] flex-1">
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">Next Price</p>
+                                <p className="text-3xl font-black text-gray-400">
                                     {icoStatus?.nextPriceUSD > 0 ? `$${icoStatus.nextPriceUSD.toFixed(4)}` : "TBA"}
                                 </p>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                {/* Mini Stats Card */}
-                <div className="bg-blue-600 border border-blue-500 rounded-[2rem] p-8 text-white flex flex-col justify-between shadow-[0_20px_40px_rgba(59,130,246,0.3)]">
-                    <div>
-                        <ArrowUpRight className="mb-4 opacity-50" size={32} />
-                        <h4 className="text-xl font-black mb-2 leading-tight tracking-tight">EIT Ecosystem Valuation</h4>
-                        <p className="text-blue-100/70 text-sm font-medium mb-6 leading-relaxed">Based on current trading volume and treasury assets.</p>
-                    </div>
-                    <div>
-                        <p className="text-4xl font-black tracking-tighter mb-1">$0.018 <span className="text-sm text-blue-200 opacity-60 font-medium">EIT</span></p>
-                        <p className="text-xs font-bold text-blue-200 tracking-widest uppercase">Institutional Fixed Price</p>
                     </div>
                 </div>
             </div>

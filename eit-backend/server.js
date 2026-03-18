@@ -1110,14 +1110,8 @@ app.get('/api/investor/transactions/:address', async (req, res) => {
         }
 
         const [publicSales, vestingEntries] = await Promise.all([
-            prisma.publicSale.findMany({
-                where: { address: { equals: address } },
-                orderBy: { timestamp: 'desc' }
-            }),
-            prisma.vestingEntry.findMany({
-                where: { address: { equals: address } },
-                orderBy: { createdAt: 'desc' }
-            })
+            prisma.$queryRaw`SELECT * FROM PublicSale WHERE address = ${address} COLLATE NOCASE ORDER BY timestamp DESC`,
+            prisma.$queryRaw`SELECT * FROM VestingEntry WHERE address = ${address} COLLATE NOCASE ORDER BY createdAt DESC`
         ]);
 
         const history = [

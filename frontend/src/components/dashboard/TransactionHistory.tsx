@@ -7,7 +7,9 @@ import {
     ArrowUpDown,
     CheckCircle2,
     Clock,
-    ShieldAlert
+    ShieldAlert,
+    Copy,
+    Check
 } from 'lucide-react';
 
 const API_URL = "http://localhost:3001/api";
@@ -15,6 +17,32 @@ const API_URL = "http://localhost:3001/api";
 interface TransactionHistoryProps {
     address: string;
 }
+
+const CopyButton = ({ text }: { text: string }) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+        }
+    };
+
+    return (
+        <button
+            onClick={handleCopy}
+            className="p-1.5 hover:bg-white/10 rounded-lg transition-all text-gray-500 hover:text-blue-400 active:scale-90"
+            title="Copy Hash"
+        >
+            {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+        </button>
+    );
+};
 
 const TransactionHistory: React.FC<TransactionHistoryProps> = ({ address }) => {
     const [transactions, setTransactions] = useState<any[]>([]);
@@ -136,9 +164,12 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ address }) => {
                                     className="hover:bg-white/[0.01] transition-colors group"
                                 >
                                     <td className="px-8 py-5 whitespace-nowrap">
-                                        <p className="text-[10px] text-gray-500 font-mono font-bold tracking-tighter">
-                                            {tx.txHash?.slice(0, 6)}...{tx.txHash?.slice(-4)}
-                                        </p>
+                                        <div className="flex items-center gap-2">
+                                            <p className="text-[10px] text-gray-500 font-mono font-bold tracking-tighter">
+                                                {tx.txHash?.slice(0, 6)}...{tx.txHash?.slice(-4)}
+                                            </p>
+                                            <CopyButton text={tx.txHash} />
+                                        </div>
                                     </td>
                                     <td className="px-6 py-5 whitespace-nowrap">
                                         <p className="text-xs text-white font-bold">{new Date(tx.date).toLocaleDateString()}</p>
