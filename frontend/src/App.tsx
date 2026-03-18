@@ -71,7 +71,7 @@ function App() {
 
   // Advanced Features State
   const [totalRaised, setTotalRaised] = useState(0);
-  const [phaseInfo, setPhaseInfo] = useState({ phaseName: "Phase 1: Seed Round", phaseTargetUSD: 15000000, referralActive: false });
+  const [phaseInfo, setPhaseInfo] = useState({ phaseName: "", phaseTargetUSD: 0, referralActive: false, isActive: false });
   const [ukFirstSeen, setUkFirstSeen] = useState(null);
   const [activeReferrer, setActiveReferrer] = useState(null);
   const [userTotalUSD, setUserTotalUSD] = useState(0n);
@@ -195,7 +195,7 @@ function App() {
       try {
         const res = await fetch(`${API_URL}/ico-status`);
         const data = await res.json();
-        if (data && data.phaseName) {
+        if (data) {
           setPhaseInfo(data);
         }
       } catch (e) {

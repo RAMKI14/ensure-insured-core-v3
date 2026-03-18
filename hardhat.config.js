@@ -14,8 +14,8 @@ module.exports = {
   },
   networks: {
     sepolia: {
-      url: process.env.SEPOLIA_RPC_URL,
-      accounts: [process.env.PRIVATE_KEY],
+      url: process.env.SEPOLIA_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: 11155111, // Matches your screenshot
       timeout: 60000 //This prevents timeput of token allocation to Crowdsale 15B, Vesting Vault 20B, Transaction Reserve 15B 
     },
