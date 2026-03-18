@@ -1,8 +1,20 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import { useRef } from 'react';
+import { motion, useScroll, useSpring } from 'framer-motion';
 import { MapPin, Globe, ShieldCheck, Rocket, ChevronRight, Activity } from 'lucide-react';
 
 const Roadmap = () => {
+    const timelineRef = useRef<HTMLDivElement>(null);
+    const { scrollYProgress } = useScroll({
+        target: timelineRef,
+        offset: ["start 90%", "end 45%"] // Reaches 100% when timeline bottom is near screen center
+    });
+
+    const scaleY = useSpring(scrollYProgress, {
+        stiffness: 800,
+        damping: 50,
+        restDelta: 0.001
+    });
+
     // Phase Data with Tokenomics-Consistent Colors
     const phases = [
         {
@@ -108,9 +120,20 @@ const Roadmap = () => {
                 </div>
 
                 {/* Timeline Engine */}
-                <div className="relative">
+                <div className="relative" ref={timelineRef}>
                     {/* The "Orbit" Line - Subtle & Premium */}
-                    <div className="absolute left-8 md:left-1/2 top-4 bottom-4 w-px bg-gradient-to-b from-blue-500/5 via-purple-500/20 to-transparent md:-translate-x-1/2"></div>
+                    <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-[2px] bg-white/10 md:-translate-x-1/2 -translate-x-1/2" />
+
+                    {/* The Animated "Energy" Bar - Ultra-Thin Purple */}
+                    <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-[2px] bg-white/5 md:-translate-x-1/2 -translate-x-1/2">
+                        <motion.div
+                            className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-purple-400 via-purple-500 to-purple-900 origin-top"
+                            style={{
+                                scaleY,
+                                boxShadow: "0 0 30px rgba(168, 85, 247, 0.6)"
+                            }}
+                        />
+                    </div>
 
                     <div className="space-y-12 md:space-y-16">
                         {phases.map((phase, index) => {
@@ -167,7 +190,7 @@ const Roadmap = () => {
                                                     {phase.items.map((item, i) => (
                                                         <div key={i} className="flex items-start gap-4">
                                                             <div
-                                                                className="mt-2.5 w-1.5 h-1.5 rounded-full shrink-0 opacity-20 group-hover:opacity-100 transition-opacity"
+                                                                className="mt-2 w-2.5 h-2.5 rounded-full shrink-0 opacity-20 group-hover:opacity-100 transition-opacity"
                                                                 style={{ backgroundColor: phase.color }}
                                                             />
                                                             <p className="text-[12px] font-bold tracking-widest text-gray-500 leading-relaxed group-hover:text-gray-300 transition-colors">
@@ -204,39 +227,83 @@ const Roadmap = () => {
                 </div>
 
                 {/* Economic Infrastructure Footer */}
-                <div className="mt-32 text-center relative pt-40 pb-20 border-t border-white/5">
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-blue-500/5 blur-[80px] rounded-full"></div>
+                <div className="mt-40 text-center relative pt-48 pb-24 border-t border-white/5 overflow-visible">
+                    {/* Ultra-Wide Background Glow - Ensuring no edge darkness */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-screen-xl h-[500px] bg-indigo-600/[0.08] blur-[200px] rounded-full pointer-events-none"></div>
+
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         whileHover="hover"
-                        className="cursor-default group relative overflow-hidden inline-block px-12"
+                        className="cursor-default group relative overflow-visible inline-block px-12 md:px-32 lg:px-48"
                     >
                         <p className="text-blue-500 font-bold text-[10px] uppercase tracking-[1em] mb-8 opacity-50">Institutional Excellence</p>
-                        
+
                         <div className="relative">
-                            <motion.h4 
+                            {/* Decorative Multi-Color Sparkles */}
+                            <motion.div
+                                variants={{
+                                    hover: { opacity: 1, scale: 1.2, y: -30, rotate: 15 },
+                                    initial: { opacity: 0, scale: 0, y: 0, rotate: 0 }
+                                }}
+                                initial="initial"
+                                transition={{ duration: 0.5, ease: "backOut" }}
+                                className="absolute -top-14 left-[10%] text-[#FF75C3] pointer-events-none"
+                            >
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
+                                </svg>
+                            </motion.div>
+                            <motion.div
+                                variants={{
+                                    hover: { opacity: 1, scale: 1, y: 30, x: 30, rotate: -15 },
+                                    initial: { opacity: 0, scale: 0, y: 0, x: 0, rotate: 0 }
+                                }}
+                                initial="initial"
+                                transition={{ duration: 0.6, ease: "backOut" }}
+                                className="absolute -bottom-12 right-[15%] text-[#00D2FF] pointer-events-none"
+                            >
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
+                                </svg>
+                            </motion.div>
+                            <motion.div
+                                variants={{
+                                    hover: { opacity: 1, scale: 0.8, y: -20, x: 50, rotate: 45 },
+                                    initial: { opacity: 0, scale: 0, y: 0, x: 0, rotate: 0 }
+                                }}
+                                initial="initial"
+                                transition={{ duration: 0.7, ease: "backOut" }}
+                                className="absolute -top-6 right-[5%] text-[#A855F7] pointer-events-none"
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
+                                </svg>
+                            </motion.div>
+
+                            <motion.h4
                                 variants={{
                                     hover: {
-                                        letterSpacing: "0.15em",
-                                        transition: { duration: 0.8, ease: "circOut" }
+                                        letterSpacing: "0.22em",
+                                        transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
                                     }
                                 }}
-                                className="text-5xl md:text-7xl font-extrabold text-white/5 tracking-tighter uppercase leading-none select-none"
+                                className="text-5xl md:text-8xl font-black text-white/10 tracking-tighter uppercase leading-none select-none transition-all duration-700 
+                                group-hover:bg-[linear-gradient(to_right,#FF75C3,#A855F7,#00D2FF,#3B82F6,#6366F1)] group-hover:bg-clip-text group-hover:text-transparent"
                             >
                                 EIT ECO SYSTEM
                             </motion.h4>
 
-                            {/* Glimmer Scanner Effect */}
-                            <motion.div 
+                            {/* Glimmer Scan Effect */}
+                            <motion.div
                                 variants={{
                                     hover: {
                                         x: ["-100%", "200%"],
-                                        transition: { duration: 1.5, repeat: Infinity, ease: "linear" }
+                                        transition: { duration: 3.5, repeat: Infinity, ease: "linear" }
                                     }
                                 }}
-                                className="absolute inset-0 top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full pointer-events-none"
+                                className="absolute inset-x-0 top-0 h-full bg-gradient-to-r from-transparent via-white/[0.05] to-transparent -translate-x-full pointer-events-none opacity-0 group-hover:opacity-100"
                             />
                         </div>
                     </motion.div>
