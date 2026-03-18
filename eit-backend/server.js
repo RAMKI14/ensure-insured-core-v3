@@ -251,7 +251,7 @@ app.get('/api/ico-status', async (req, res) => {
         }
 
         // 2. Fetch On-Chain Price as Source of Truth
-        let onChainData = { priceUSD: 0, phaseTargetUSD: 0, nextPriceUSD: 0 };
+        let onChainData = { priceUSD: 0, phaseTargetUSD: 0, nextPriceUSD: 0, currentPhase: 0, totalPhases: 0 };
         try {
             const provider = new ethers.JsonRpcProvider(RPC_URL);
             const contract = new ethers.Contract(CROWD_ADDRESS, CROWD_ABI, provider);
@@ -260,6 +260,8 @@ app.get('/api/ico-status', async (req, res) => {
                 contract.currentPhase(),
                 contract.getPhaseCount()
             ]);
+            onChainData.currentPhase = Number(currentPhase);
+            onChainData.totalPhases = Number(totalPhases);
 
             const phase = await contract.phases(currentPhase);
             onChainData.priceUSD = parseFloat(ethers.formatUnits(phase.priceUSD, 18));
@@ -280,7 +282,9 @@ app.get('/api/ico-status', async (req, res) => {
             ...settings,
             priceUSD: onChainData.priceUSD,
             nextPriceUSD: onChainData.nextPriceUSD,
-            phaseTargetUSD: onChainData.phaseTargetUSD || settings.phaseTargetUSD
+            phaseTargetUSD: onChainData.phaseTargetUSD || settings.phaseTargetUSD,
+            currentPhase: onChainData.currentPhase,
+            totalPhases: onChainData.totalPhases
         });
     } catch (error) {
         console.error("ICO Status Fetch Error:", error);

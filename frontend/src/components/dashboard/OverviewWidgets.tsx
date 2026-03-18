@@ -55,7 +55,18 @@ const OverviewWidgets: React.FC<OverviewWidgetsProps> = ({ address }) => {
         );
     }
 
-    const price = icoStatus?.priceUSD || (icoStatus?.phasePriceUSD) || 0;
+    const totalPhases = Math.max(Number(icoStatus?.totalPhases) || 1, 1);
+    const currentIdx = Number(icoStatus?.currentPhase) || 0;
+    const price = Number(icoStatus?.priceUSD) || 0;
+    const phaseColors = [
+        '#3B82F6', // Phase 1: Blue
+        '#EAB308', // Phase 2: Yellow
+        '#22C55E', // Phase 3: Green
+        '#A855F7', // Phase 4: Purple
+        '#F59E0B', // Phase 5: Amber
+        '#EC4899', // Phase 6: Pink
+        '#06B6D4'  // Phase 7: Cyan
+    ];
 
     return (
         <div className="space-y-8 pb-10">
@@ -93,7 +104,7 @@ const OverviewWidgets: React.FC<OverviewWidgetsProps> = ({ address }) => {
                     bg="bg-amber-500/10"
                 />
 
-                {/* Referral Earnings */}
+                {/* Referral Rewards */}
                 <WidgetCard
                     title="Referral Rewards"
                     value={stats?.referralRewards > 0 ? `${stats.referralRewards.toLocaleString()} EIT` : "No Rewards"}
@@ -109,17 +120,38 @@ const OverviewWidgets: React.FC<OverviewWidgetsProps> = ({ address }) => {
                 {/* ICO Status Card */}
                 <div className="bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/5 rounded-[2.5rem] p-10 flex flex-col md:flex-row gap-12 items-center">
                     <div className="w-56 h-56 rounded-full border-8 border-white/5 flex items-center justify-center relative shadow-2xl">
-                        <svg className="w-full h-full -rotate-90">
+                        <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                            {/* Background track */}
                             <circle
-                                cx="50%" cy="50%" r="42%"
-                                className="fill-none stroke-white/5 stroke-[8px]"
+                                cx="50" cy="50" r="42"
+                                className="fill-none stroke-white/10 stroke-[6px]"
                             />
-                            <motion.circle
-                                initial={{ strokeDasharray: "0 1000" }}
-                                animate={{ strokeDasharray: "250 1000" }}
-                                cx="50%" cy="50%" r="42%"
-                                className="fill-none stroke-blue-500 stroke-[8px] transition-all duration-1000"
-                            />
+                            
+                            {/* Dynamic Phase Segments */}
+                            {Array.from({ length: totalPhases }).map((_, i) => {
+                                const circumference = 2 * Math.PI * 42;
+                                const segment = circumference / totalPhases;
+                                const gap = totalPhases > 1 ? 2 : 0;
+                                const dash = segment - gap;
+                                const offset = -(i * segment);
+                                
+                                const isFilled = i <= currentIdx;
+                                const color = isFilled ? phaseColors[i % phaseColors.length] : 'rgba(255,255,255,0.05)';
+                                
+                                return (
+                                    <circle
+                                        key={i}
+                                        cx="50" cy="50" r="42"
+                                        className="fill-none transition-all duration-1000"
+                                        stroke={color}
+                                        strokeWidth={isFilled ? "8" : "4"}
+                                        strokeDasharray={`${dash} ${circumference - dash}`}
+                                        strokeDashoffset={offset}
+                                        strokeLinecap={totalPhases > 1 ? "round" : "butt"}
+                                        style={{ filter: isFilled ? `drop-shadow(0 0 8px ${color})` : 'none' }}
+                                    />
+                                );
+                            })}
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
                             <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest px-4 text-center">
@@ -130,7 +162,7 @@ const OverviewWidgets: React.FC<OverviewWidgetsProps> = ({ address }) => {
                                     ? "No Sale Yet"
                                     : !icoStatus.isActive
                                         ? "No Active"
-                                        : (icoStatus?.phaseName?.split(':')?.[0] || "Phase 2")
+                                        : (icoStatus?.phaseName?.split(':')?.[0] || `Phase ${currentIdx + 1}`)
                                 }
                             </h4>
                         </div>

@@ -141,17 +141,17 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ address }) => {
                     <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
                             <tr className="bg-white/[0.02] border-b border-white/5">
-                                <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Tx Hash</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                                <th className="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Tx Hash</th>
+                                <th className="px-4 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">
                                     <div className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
                                         Date <ArrowUpDown size={12} />
                                     </div>
                                 </th>
-                                <th className="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Type</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Amount (EIT)</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">USD Value</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Status</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">Action</th>
+                                <th className="px-4 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Type</th>
+                                <th className="px-4 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Amount</th>
+                                <th className="px-4 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Value</th>
+                                <th className="px-4 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Status</th>
+                                <th className="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.03]">
@@ -163,40 +163,40 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ address }) => {
                                     key={tx.id} 
                                     className="hover:bg-white/[0.01] transition-colors group"
                                 >
-                                    <td className="px-8 py-5 whitespace-nowrap">
+                                    <td className="px-6 py-5 whitespace-nowrap">
                                         <div className="flex items-center gap-2">
-                                            <p className="text-[10px] text-gray-500 font-mono font-bold tracking-tighter">
-                                                {tx.txHash?.slice(0, 6)}...{tx.txHash?.slice(-4)}
+                                            <p className="text-[10px] text-gray-500 font-mono font-black tracking-tighter">
+                                                {tx.txHash?.slice(0, 5)}...{tx.txHash?.slice(-4)}
                                             </p>
                                             <CopyButton text={tx.txHash} />
                                         </div>
                                     </td>
-                                    <td className="px-6 py-5 whitespace-nowrap">
+                                    <td className="px-4 py-5 whitespace-nowrap">
                                         <p className="text-xs text-white font-bold">{new Date(tx.date).toLocaleDateString()}</p>
                                         <p className="text-[10px] text-gray-500 font-medium">{new Date(tx.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                                     </td>
-                                    <td className="px-6 py-5">
+                                    <td className="px-4 py-5">
                                         <div className="flex items-center gap-2">
                                             <div className={`p-1.5 rounded-lg ${tx.type.includes('Public') ? 'bg-blue-500/10 text-blue-400' : 'bg-purple-500/10 text-purple-400'}`}>
                                                 {tx.type.includes('Public') ? <Clock size={12} /> : <ShieldAlert size={12} />}
                                             </div>
-                                            <span className="text-[11px] font-black text-white/80 uppercase tracking-wide">{tx.type}</span>
+                                            <span className="text-[10px] font-black text-white/80 uppercase tracking-wide">{tx.type}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-5">
+                                    <td className="px-4 py-5">
                                         <p className="text-xs font-black text-white">{Number(tx.amount).toLocaleString()} EIT</p>
                                     </td>
-                                    <td className="px-6 py-5">
+                                    <td className="px-4 py-5">
                                         <p className="text-xs font-bold text-gray-400">${Number(tx.amountUSD || 0).toLocaleString()}</p>
-                                        <p className="text-[10px] text-gray-600 font-medium">via {tx.crypto || 'USDT'}</p>
+                                        <p className="text-[9px] text-gray-600 font-medium">via {tx.crypto || 'USDT'}</p>
                                     </td>
-                                    <td className="px-6 py-5">
+                                    <td className="px-4 py-5">
                                         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-green-400 text-[10px] font-black uppercase tracking-tighter">
                                             <CheckCircle2 size={10} />
                                             Success
                                         </div>
                                     </td>
-                                    <td className="px-8 py-5 text-right">
+                                    <td className="px-6 py-5 text-right whitespace-nowrap">
                                         <a 
                                             href={`https://sepolia.etherscan.io/tx/${tx.txHash}`} 
                                             target="_blank" 

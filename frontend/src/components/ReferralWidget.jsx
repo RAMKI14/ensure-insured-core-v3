@@ -8,67 +8,22 @@ import { getReferralHoldingValue } from '../utils/referralEligibility';
 
 const API_URL = "http://localhost:3001/api"; 
 
-const ReferralWidget = ({ account }) => {
+const ReferralWidget = ({ account, userTotalUSD = 0n, phaseInfo = {} }) => {
   const [copied, setCopied] = useState(false);
-  const [rewardPercent, setRewardPercent] = useState(5);
-  const [isActive, setIsActive] = useState(false);
   
-  // NEW: Eligibility State
-  const [isEligible, setIsEligible] = useState(false);
-  const [currentValueUSD, setCurrentValueUSD] = useState(0);
-  const [loading, setLoading] = useState(true);
-
   // Configuration
   const MIN_HOLDING_USD = 100;
+  
+  // Derived State (Instant, no loading needed)
+  const rewardPercent = phaseInfo.referralPercent || 5;
+  const isActive = phaseInfo.referralActive === true;
+  
+  // BigInt math for precision: userTotalUSD is in 18 decimals
+  const thresholdWei = BigInt(MIN_HOLDING_USD) * BigInt(10**18);
+  const isEligible = userTotalUSD >= thresholdWei;
+  const currentValueUSD = Number(ethers.formatUnits(userTotalUSD, 18));
 
-  // --- 1. FETCH DATA (Settings + Eligibility) ---
-  useEffect(() => {
-    if (!account) return;
-
-    const init = async () => {
-        try {
-            setLoading(true);
-
-            // A. Get Admin Settings
-            const res = await fetch(`${API_URL}/ico-status`);
-            const data = await res.json();
-            if (data.referralPercent) setRewardPercent(data.referralPercent);
-            if (data.referralActive === true) setIsActive(true);
-            else {
-                setIsActive(false);
-                setLoading(false);
-                return; // Stop if system is disabled
-            }
-
-            // B. Check User Eligibility (On-Chain)
-            const provider = new ethers.BrowserProvider(window.ethereum);
-            const { valueUsd: valUSD } = await getReferralHoldingValue(
-                account,
-                provider,
-                addresses,
-                TokenABI,
-                CrowdsaleABI
-            );
-            setCurrentValueUSD(valUSD);
-
-            if (valUSD >= MIN_HOLDING_USD) {
-                setIsEligible(true);
-            } else {
-                setIsEligible(false);
-            }
-
-        } catch (e) {
-            console.error("Referral Check Error", e);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    init();
-  }, [account]);
-
-  if (!account) return null;
-  if (!isActive) return null; 
+  if (!account || !isActive) return null; 
 
   const link = `${window.location.origin}?ref=${account}`;
 
@@ -79,7 +34,6 @@ const ReferralWidget = ({ account }) => {
   };
 
   // --- RENDER LOCKED STATE ---
-  if (loading) return <div className="text-center text-gray-500 text-xs mt-4">Checking eligibility...</div>;
 
   if (!isEligible) {
     return (

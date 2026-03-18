@@ -815,7 +815,12 @@ function App() {
             className="relative w-full max-w-md animate-zoom-in"
             onClick={(e) => e.stopPropagation()}
           >
-            <ReferralWidget account={address} onClose={() => setIsReferralModalOpen(false)} />
+            <ReferralWidget 
+                account={address} 
+                userTotalUSD={userTotalUSD}
+                phaseInfo={phaseInfo}
+                onClose={() => setIsReferralModalOpen(false)} 
+            />
           </div>
         </div>
       )}

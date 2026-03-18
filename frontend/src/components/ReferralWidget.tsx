@@ -8,67 +8,27 @@ import { getReferralHoldingValue } from '../utils/referralEligibility';
 
 const API_URL = "http://localhost:3001/api";
 
-const ReferralWidget = ({ account, onClose }: { account: string; onClose?: () => void }) => {
-    const [copied, setCopied] = useState(false);
-    const [rewardPercent, setRewardPercent] = useState(5);
-    const [isActive, setIsActive] = useState(false);
+interface ReferralWidgetProps {
+    account: string;
+    onClose?: () => void;
+    userTotalUSD?: bigint;
+    phaseInfo?: any;
+}
 
-    // NEW: Eligibility State
-    const [isEligible, setIsEligible] = useState(false);
-    const [currentValueUSD, setCurrentValueUSD] = useState(0);
-    const [loading, setLoading] = useState(true);
+const ReferralWidget = ({ account, onClose, userTotalUSD = 0n, phaseInfo = {} }: ReferralWidgetProps) => {
+    const [copied, setCopied] = useState(false);
 
     // Configuration
     const MIN_HOLDING_USD = 100;
 
-    // --- 1. FETCH DATA (Settings + Eligibility) ---
-    useEffect(() => {
-        const init = async () => {
-            try {
-                setLoading(true);
+    // Derived State (Instant, no loading needed)
+    const rewardPercent = phaseInfo.referralPercent || 5;
+    const isActive = phaseInfo.referralActive === true;
 
-                // A. Get Admin Settings
-                const res = await fetch(`${API_URL}/ico-status`);
-                const data = await res.json();
-                if (data.referralPercent) setRewardPercent(data.referralPercent);
-                if (data.referralActive === true) setIsActive(true);
-                else {
-                    setIsActive(false);
-                    return; // Stop if system is disabled
-                }
-
-                if (!account || !window.ethereum) {
-                    setIsEligible(false);
-                    setCurrentValueUSD(0);
-                    return;
-                }
-
-                // B. Check User Eligibility (On-Chain)
-                const provider = new ethers.BrowserProvider(window.ethereum);
-                const { valueUsd: valUSD } = await getReferralHoldingValue(
-                    account,
-                    provider,
-                    addresses,
-                    TokenABI,
-                    CrowdsaleABI
-                );
-                setCurrentValueUSD(valUSD);
-
-                if (valUSD >= MIN_HOLDING_USD) {
-                    setIsEligible(true);
-                } else {
-                    setIsEligible(false);
-                }
-
-            } catch (e) {
-                console.error("Referral Check Error", e);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        init();
-    }, [account]);
+    // BigInt math for precision: userTotalUSD is in 18 decimals
+    const thresholdWei = BigInt(MIN_HOLDING_USD) * BigInt(Math.pow(10, 18));
+    const isEligible = userTotalUSD >= thresholdWei;
+    const currentValueUSD = Number(ethers.formatUnits(userTotalUSD, 18));
 
     if (!isActive) return null;
 
@@ -101,8 +61,6 @@ const ReferralWidget = ({ account, onClose }: { account: string; onClose?: () =>
     }
 
     // --- RENDER LOCKED STATE ---
-    if (loading) return <div className="text-center text-gray-500 text-xs mt-4">Checking eligibility...</div>;
-
     if (!isEligible) {
         return (
             <div className="w-full max-w-md mx-auto mt-8 bg-gray-900/50 border border-gray-700 rounded-xl p-6 text-center opacity-75">

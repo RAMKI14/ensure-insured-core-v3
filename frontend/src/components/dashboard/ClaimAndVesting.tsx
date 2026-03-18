@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-    Coins, 
-    Calendar, 
-    Lock, 
-    Unlock, 
+import {
+    Coins,
+    Calendar,
+    Lock,
+    Unlock,
     ChevronRight,
     ArrowRightCircle,
     Info,
@@ -30,10 +30,10 @@ const ClaimAndVesting: React.FC<ClaimAndVestingProps> = ({ address }) => {
         try {
             const provider = new ethers.JsonRpcProvider(RPC_URL);
             const contract = new ethers.Contract(addresses.VESTING_VAULT, VestingVaultABI.abi, provider);
-            
+
             // Get Schedule
             const scheduleData = await contract.vestingSchedules(address);
-            
+
             if (scheduleData.totalAmount > 0n) {
                 setSchedule({
                     isRevocable: scheduleData.isRevocable,
@@ -61,7 +61,7 @@ const ClaimAndVesting: React.FC<ClaimAndVestingProps> = ({ address }) => {
                         vested = (total * BigInt(now - start)) / BigInt(duration);
                     }
                 }
-                
+
                 const claimableWei = vested - scheduleData.amountClaimed;
                 setClaimable(ethers.formatEther(claimableWei > 0n ? claimableWei : 0n));
             }
@@ -83,10 +83,10 @@ const ClaimAndVesting: React.FC<ClaimAndVestingProps> = ({ address }) => {
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
             const contract = new ethers.Contract(addresses.VESTING_VAULT, VestingVaultABI.abi, signer);
-            
+
             const tx = await contract.claim();
             await tx.wait();
-            
+
             alert("Tokens claimed successfully!");
             fetchVestingData();
         } catch (e: any) {
@@ -120,27 +120,28 @@ const ClaimAndVesting: React.FC<ClaimAndVestingProps> = ({ address }) => {
                         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
                             <div className="space-y-2">
                                 <p className="text-[10px] text-blue-400 font-black uppercase tracking-[0.2em]">Available to Claim</p>
-                                <h2 className="text-5xl font-black text-white tracking-tighter">
-                                    {Number(claimable).toLocaleString(undefined, { maximumFractionDigits: 2 })} 
-                                    <span className="text-xl font-medium opacity-50 ml-2">EIT</span>
-                                </h2>
+                                <div className="flex items-baseline gap-3">
+                                    <h2 className="text-5xl font-black text-white">
+                                        {Number(claimable).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                                    </h2>
+                                    <span className="text-xl font-medium opacity-50">EIT</span>
+                                </div>
                                 <p className="text-xs text-gray-400 font-bold">Unlocks dynamically every second</p>
                             </div>
-                            
-                            <button 
+
+                            <button
                                 onClick={handleClaim}
                                 disabled={Number(claimable) <= 0 || claiming}
-                                className={`group flex items-center gap-3 px-8 py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 ${
-                                    Number(claimable) > 0 && !claiming
-                                    ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_15px_30px_rgba(59,130,246,0.3)]'
-                                    : 'bg-white/5 text-gray-500 border border-white/10 cursor-not-allowed'
-                                }`}
+                                className={`group flex items-center gap-3 px-8 py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 ${Number(claimable) > 0 && !claiming
+                                        ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_15px_30px_rgba(59,130,246,0.3)]'
+                                        : 'bg-white/5 text-gray-500 border border-white/10 cursor-not-allowed'
+                                    }`}
                             >
                                 {claiming ? "Processing..." : "Claim Tokens"}
                                 <ArrowRightCircle size={18} className="group-hover:translate-x-1 transition-transform" />
                             </button>
                         </div>
-                        
+
                         {/* Background Decor */}
                         <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-blue-500/20 blur-[100px] rounded-full" />
                     </div>
@@ -159,7 +160,7 @@ const ClaimAndVesting: React.FC<ClaimAndVestingProps> = ({ address }) => {
                         <Calendar size={16} className="text-blue-400" />
                         Vesting Parameters
                     </h4>
-                    
+
                     <div className="space-y-4">
                         <ParamRow label="Start Date" value={new Date(schedule.startTime * 1000).toLocaleDateString()} />
                         <ParamRow label="Cliff End" value={new Date((schedule.startTime + schedule.cliffDuration) * 1000).toLocaleDateString()} />
@@ -172,7 +173,7 @@ const ClaimAndVesting: React.FC<ClaimAndVestingProps> = ({ address }) => {
                     <div className="mt-auto bg-blue-500/5 border border-blue-500/10 rounded-2xl p-4 flex gap-3">
                         <Info size={16} className="text-blue-400 shrink-0 mt-0.5" />
                         <p className="text-[10px] text-gray-500 font-medium leading-relaxed">
-                            Vesting follows a linear linear model. Tokens unlock once per block after the cliff period.
+                            Vesting follows a linear model. Tokens unlock once per block after the cliff period.
                         </p>
                     </div>
                 </div>
@@ -181,7 +182,7 @@ const ClaimAndVesting: React.FC<ClaimAndVestingProps> = ({ address }) => {
             {/* Visual Timeline (Premium) */}
             <div className="bg-white/[0.03] border border-white/5 rounded-[2.5rem] p-10">
                 <div className="flex items-center justify-between mb-12">
-                     <div>
+                    <div>
                         <h4 className="text-xl font-black text-white tracking-tight">Vesting Timeline</h4>
                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Release Projection</p>
                     </div>
@@ -191,8 +192,8 @@ const ClaimAndVesting: React.FC<ClaimAndVestingProps> = ({ address }) => {
                     </div>
                 </div>
 
-                <div className="relative pt-12">
-                   <VestingTimeline schedule={schedule} />
+                <div className="relative pt-24 pb-12">
+                    <VestingTimeline schedule={schedule} />
                 </div>
             </div>
         </div>
@@ -220,52 +221,54 @@ const VestingTimeline = ({ schedule }: any) => {
     const cliffProgress = (schedule.cliffDuration / schedule.vestingDuration) * 100;
 
     return (
-        <div className="relative w-full h-24">
-            {/* Background Line */}
-            <div className="absolute top-1/2 -translate-y-1/2 w-full h-1 bg-white/5 rounded-full" />
-            
-            {/* Active Progress Line */}
-            <motion.div 
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                className="absolute top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.5)] z-10"
-            />
+        <div className="px-12 md:px-20">
+            <div className="relative w-full h-2">
+                {/* Background Line */}
+                <div className="absolute top-1/2 -translate-y-1/2 w-full h-1 bg-white/5 rounded-full" />
 
-            {/* Cliff Marker */}
-            <div className="absolute h-8 w-px bg-white/20 top-1/2 -translate-y-1/2 z-20" style={{ left: `${cliffProgress}%` }}>
-                <div className="absolute top-full mt-4 -translate-x-1/2 text-center whitespace-nowrap">
-                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Cliff</p>
-                    <p className="text-[10px] font-bold text-white">{(schedule.cliffDuration / 86400 / 30).toFixed(0)} Months</p>
+                {/* Active Progress Line */}
+                <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    className="absolute top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.5)] z-10"
+                />
+
+                {/* Cliff Marker */}
+                <div className="absolute h-8 w-px bg-white/20 top-1/2 -translate-y-1/2 z-20" style={{ left: `${cliffProgress}%` }}>
+                    <div className="absolute top-full mt-4 -translate-x-1/2 text-center whitespace-nowrap">
+                        <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Cliff</p>
+                        <p className="text-[10px] font-bold text-white">{(schedule.cliffDuration / 86400 / 30).toFixed(0)} Months</p>
+                    </div>
                 </div>
+
+                {/* Start Marker */}
+                <div className="absolute h-8 w-px bg-blue-500 top-1/2 -translate-y-1/2 z-20 left-0">
+                    <div className="absolute bottom-full mb-4 left-0 text-left whitespace-nowrap">
+                        <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-1">TGE</p>
+                        <p className="text-[10px] font-bold text-white">{new Date(schedule.startTime * 1000).toLocaleDateString()}</p>
+                    </div>
+                </div>
+
+                {/* End Marker */}
+                <div className="absolute h-8 w-px bg-white/20 top-1/2 -translate-y-1/2 z-20 right-0">
+                    <div className="absolute bottom-full mb-4 right-0 text-right whitespace-nowrap">
+                        <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Final Unlock</p>
+                        <p className="text-[10px] font-bold text-white">{new Date((schedule.startTime + schedule.vestingDuration) * 1000).toLocaleDateString()}</p>
+                    </div>
+                </div>
+
+                {/* Floating Now Bubble */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1, left: `${progress}%` }}
+                    className="absolute top-1/2 -translate-y-1/2 z-30 flex flex-col items-center"
+                >
+                    <div className="w-4 h-4 rounded-full bg-white border-4 border-blue-600 shadow-[0_0_15px_rgba(59,130,246,1)]" />
+                    <div className="absolute top-full mt-4 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-black px-4 py-1.5 rounded-lg shadow-lg uppercase tracking-widest whitespace-nowrap">
+                        Now
+                    </div>
+                </motion.div>
             </div>
-
-            {/* Start Marker */}
-            <div className="absolute h-8 w-px bg-blue-500 top-1/2 -translate-y-1/2 z-20 left-0">
-                 <div className="absolute bottom-full mb-4 -translate-x-1/2 text-center whitespace-nowrap">
-                    <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-1">TGE</p>
-                    <p className="text-[10px] font-bold text-white">{new Date(schedule.startTime * 1000).toLocaleDateString()}</p>
-                </div>
-            </div>
-
-            {/* End Marker */}
-            <div className="absolute h-8 w-px bg-white/20 top-1/2 -translate-y-1/2 z-20 right-0">
-                 <div className="absolute bottom-full mb-4 translate-x-1/2 text-center whitespace-nowrap">
-                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Final Unlock</p>
-                    <p className="text-[10px] font-bold text-white">{new Date((schedule.startTime + schedule.vestingDuration) * 1000).toLocaleDateString()}</p>
-                </div>
-            </div>
-
-            {/* Floating Now Bubble */}
-            <motion.div 
-                 initial={{ opacity: 0 }}
-                 animate={{ opacity: 1, left: `${progress}%` }}
-                 className="absolute top-1/2 -translate-y-1/2 z-30 flex flex-col items-center"
-            >
-                <div className="w-4 h-4 rounded-full bg-white border-4 border-blue-600 shadow-[0_0_15px_rgba(59,130,246,1)]" />
-                 <div className="absolute top-full mt-4 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-black px-2 py-1 rounded shadow-lg uppercase tracking-widest">
-                    Now
-                </div>
-            </motion.div>
         </div>
     );
 }
