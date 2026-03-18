@@ -71,7 +71,7 @@ function App() {
 
   // Advanced Features State
   const [totalRaised, setTotalRaised] = useState(0);
-  const [phaseInfo, setPhaseInfo] = useState({ phaseName: "", phaseTargetUSD: 0, referralActive: false, isActive: false });
+  const [phaseInfo, setPhaseInfo] = useState({ phaseName: "", phaseTargetUSD: 0, raisedUSD: 0, totalRaisedUSD: 0, referralActive: false, isActive: false });
   const [ukFirstSeen, setUkFirstSeen] = useState(null);
   const [activeReferrer, setActiveReferrer] = useState(null);
   const [userTotalUSD, setUserTotalUSD] = useState(0n);
@@ -197,6 +197,9 @@ function App() {
         const data = await res.json();
         if (data) {
           setPhaseInfo(data);
+          if (data.totalRaisedUSD !== undefined) {
+            setTotalRaised(data.totalRaisedUSD);
+          }
         }
       } catch (e) {
         // Silently fail if backend is offline

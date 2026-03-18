@@ -251,7 +251,15 @@ app.get('/api/ico-status', async (req, res) => {
         }
 
         // 2. Fetch On-Chain Price as Source of Truth
-        let onChainData = { priceUSD: 0, phaseTargetUSD: 0, nextPriceUSD: 0, currentPhase: 0, totalPhases: 0 };
+        let onChainData = { 
+            priceUSD: 0, 
+            phaseTargetUSD: 0, 
+            raisedUSD: 0, 
+            totalRaisedUSD: 0, 
+            nextPriceUSD: 0, 
+            currentPhase: 0, 
+            totalPhases: 0 
+        };
         try {
             const provider = new ethers.JsonRpcProvider(RPC_URL);
             const contract = new ethers.Contract(CROWD_ADDRESS, CROWD_ABI, provider);
@@ -266,6 +274,21 @@ app.get('/api/ico-status', async (req, res) => {
             const phase = await contract.phases(currentPhase);
             onChainData.priceUSD = parseFloat(ethers.formatUnits(phase.priceUSD, 18));
             onChainData.phaseTargetUSD = parseFloat(ethers.formatUnits(phase.targetUSD, 18));
+            onChainData.raisedUSD = parseFloat(ethers.formatUnits(phase.raisedUSD, 18));
+
+            // Fetch Total Raised Across All Phases IN PARALLEL
+            const phasesToFetch = Number(totalPhases);
+            const phasePromises = [];
+            for (let i = 0; i < phasesToFetch; i++) {
+                phasePromises.push(contract.phases(i));
+            }
+            
+            const allPhases = await Promise.all(phasePromises);
+            let totalRaised = 0;
+            allPhases.forEach(p => {
+                totalRaised += parseFloat(ethers.formatUnits(p.raisedUSD, 18));
+            });
+            onChainData.totalRaisedUSD = totalRaised;
 
             // Fetch Next Phase Price if it exists
             const nextIdx = Number(currentPhase) + 1;
@@ -283,6 +306,8 @@ app.get('/api/ico-status', async (req, res) => {
             priceUSD: onChainData.priceUSD,
             nextPriceUSD: onChainData.nextPriceUSD,
             phaseTargetUSD: onChainData.phaseTargetUSD || settings.phaseTargetUSD,
+            raisedUSD: onChainData.raisedUSD,
+            totalRaisedUSD: onChainData.totalRaisedUSD,
             currentPhase: onChainData.currentPhase,
             totalPhases: onChainData.totalPhases
         });

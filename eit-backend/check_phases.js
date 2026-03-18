@@ -3,7 +3,7 @@ const fs = require('fs');
 
 async function main() {
     const config = JSON.parse(fs.readFileSync('./frontend-config.json', 'utf8'));
-    const abi = JSON.parse(fs.readFileSync('./frontend/src/EITCrowdsale.json', 'utf8')).abi;
+    const abi = JSON.parse(fs.readFileSync('../frontend/src/EITCrowdsale.json', 'utf8')).abi;
     
     const RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
     const provider = new ethers.JsonRpcProvider(RPC_URL);
