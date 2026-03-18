@@ -65,20 +65,22 @@ const OverviewWidgets: React.FC<OverviewWidgetsProps> = ({ address }) => {
                 <WidgetCard
                     title="Total EIT Allocated"
                     value={stats?.totalEIT?.toLocaleString() || "0"}
-                    subValue={`≈ $${(stats?.totalEIT * price).toLocaleString()}`}
+                    subValue={stats?.totalInvestedUSD > 0 ? `Value: $${stats.totalInvestedUSD.toLocaleString()}` : `≈ $${(stats?.totalEIT * price).toLocaleString()}`}
                     icon={Coins}
                     color="text-blue-400"
                     bg="bg-blue-500/10"
+                    description="Total tokens across all allocation types"
                 />
 
                 {/* Investing Amount */}
                 <WidgetCard
                     title="Public Sale Purchases"
                     value={stats?.publicEIT?.toLocaleString() || "0"}
-                    subValue={stats?.publicEIT > 0 ? `Purchased with ${stats?.currenciesUsed || 'ETH/USDT'}` : ""}
+                    subValue={stats?.publicEIT > 0 ? `Purchased with ${stats?.currenciesUsed || 'ETH/USDT'}` : "Direct ICO Participation"}
                     icon={TrendingUp}
                     color="text-purple-400"
                     bg="bg-purple-500/10"
+                    description="Tokens bought during public crowdsale only"
                 />
 
                 {/* Vesting Amount */}
@@ -169,7 +171,7 @@ const OverviewWidgets: React.FC<OverviewWidgetsProps> = ({ address }) => {
                             <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
                                 <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Next Price</p>
                                 <p className="text-xl font-black text-gray-400">
-                                    {price > 0 ? `$${(price * 1.2).toFixed(4)}` : "TBA"}
+                                    {icoStatus?.nextPriceUSD > 0 ? `$${icoStatus.nextPriceUSD.toFixed(4)}` : "TBA"}
                                 </p>
                             </div>
                         </div>
@@ -193,8 +195,8 @@ const OverviewWidgets: React.FC<OverviewWidgetsProps> = ({ address }) => {
     );
 };
 
-const WidgetCard = ({ title, value, subValue, icon: Icon, color, bg }: any) => (
-    <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 transition-all hover:bg-white/[0.05] group">
+const WidgetCard = ({ title, value, subValue, icon: Icon, color, bg, description }: any) => (
+    <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 transition-all hover:bg-white/[0.05] group relative">
         <div className="flex justify-between items-start mb-4">
             <div className={`p-2.5 rounded-xl ${bg} ${color} border border-white/5 group-hover:scale-110 transition-transform`}>
                 <Icon size={20} />
@@ -203,7 +205,10 @@ const WidgetCard = ({ title, value, subValue, icon: Icon, color, bg }: any) => (
         </div>
         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">{title}</p>
         <h4 className="text-2xl font-black text-white tracking-tight mb-0.5">{value}</h4>
-        <p className="text-[10px] text-gray-500 font-bold">{subValue}</p>
+        <div className="flex flex-col gap-1">
+            <p className="text-[10px] text-gray-400 font-bold">{subValue}</p>
+            {description && <p className="text-[9px] text-gray-600 font-medium italic">{description}</p>}
+        </div>
     </div>
 );
 

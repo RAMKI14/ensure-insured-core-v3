@@ -244,15 +244,47 @@ app.post('/api/log-consent', async (req, res) => {
 // --- API: ICO SETTINGS (Admin) ---
 app.get('/api/ico-status', async (req, res) => {
     try {
-        // Fallback for first run if table empty
+        // 1. Get DB Settings (Phase Name, Referral Status)
         let settings = await prisma.iCOSettings.findUnique({ where: { id: 1 } });
         if (!settings) {
-            return res.json({ phaseName: "", phaseTargetUSD: 0, isActive: false });
+            settings = { phaseName: "Phase 1", phaseTargetUSD: 0, isActive: false, referralActive: false, referralPercent: 5 };
         }
-        res.json(settings);
+
+        // 2. Fetch On-Chain Price as Source of Truth
+        let onChainData = { priceUSD: 0, phaseTargetUSD: 0, nextPriceUSD: 0 };
+        try {
+            const provider = new ethers.JsonRpcProvider(RPC_URL);
+            const contract = new ethers.Contract(CROWD_ADDRESS, CROWD_ABI, provider);
+            
+            const [currentPhase, totalPhases] = await Promise.all([
+                contract.currentPhase(),
+                contract.getPhaseCount()
+            ]);
+
+            const phase = await contract.phases(currentPhase);
+            onChainData.priceUSD = parseFloat(ethers.formatUnits(phase.priceUSD, 18));
+            onChainData.phaseTargetUSD = parseFloat(ethers.formatUnits(phase.targetUSD, 18));
+
+            // Fetch Next Phase Price if it exists
+            const nextIdx = Number(currentPhase) + 1;
+            if (nextIdx < Number(totalPhases)) {
+                const nextPhase = await contract.phases(nextIdx);
+                onChainData.nextPriceUSD = parseFloat(ethers.formatUnits(nextPhase.priceUSD, 18));
+            }
+            
+        } catch (chainError) {
+            console.error("⚠️ Blockchain Price Fetch Error:", chainError.message);
+        }
+
+        res.json({
+            ...settings,
+            priceUSD: onChainData.priceUSD,
+            nextPriceUSD: onChainData.nextPriceUSD,
+            phaseTargetUSD: onChainData.phaseTargetUSD || settings.phaseTargetUSD
+        });
     } catch (error) {
         console.error("ICO Status Fetch Error:", error);
-        res.json({ phaseName: "", phaseTargetUSD: 0, isActive: false });
+        res.json({ phaseName: "", phaseTargetUSD: 0, isActive: false, priceUSD: 0 });
     }
 });
 
