@@ -22,6 +22,7 @@ import SystemArchitecture from './components/landing/SystemArchitecture';
 import SectionSeparator from './components/landing/SectionSeparator';
 import ComplianceModal from './components/landing/ComplianceModal';
 import ReferralWidget from './components/ReferralWidget';
+import DashboardRoot from './components/dashboard/DashboardRoot';
 import { Share2, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 const ESTIMATED_ETH_PRICE = 2000;
@@ -84,6 +85,7 @@ function App() {
   const [kycError, setKycError] = useState("");
   const [kycSubmitting, setKycSubmitting] = useState(false);
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
 
   const clearIdleTimer = () => {
     if (idleTimerRef.current) {
@@ -792,8 +794,16 @@ function App() {
       <Navbar
         account={address}
         onReferClick={() => setIsReferralModalOpen(true)}
+        onDashboardClick={() => setIsDashboardOpen(true)}
         referralEnabled={phaseInfo.referralActive}
       />
+
+      {isDashboardOpen && address && (
+        <DashboardRoot 
+          address={address} 
+          onClose={() => setIsDashboardOpen(false)} 
+        />
+      )}
 
       {/* GLOBAL REFERRAL MODAL */}
       {isReferralModalOpen && (

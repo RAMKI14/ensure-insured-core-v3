@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Menu, X, Share2 } from 'lucide-react';
+import { ShieldCheck, Menu, X, Share2, LayoutDashboard } from 'lucide-react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { HoverBorderGradient } from '../ui/hover-border-gradient';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const Navbar = ({ account, onReferClick, referralEnabled = true }: { account?: string; onReferClick: () => void; referralEnabled?: boolean }) => {
+const Navbar = ({ account, onReferClick, onDashboardClick, referralEnabled = true }: { account?: string; onReferClick: () => void; onDashboardClick: () => void; referralEnabled?: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -93,17 +93,25 @@ const Navbar = ({ account, onReferClick, referralEnabled = true }: { account?: s
           ))}
 
           {/* REFER BUTTON - SEPARATED BY GAP */}
-          {account && referralEnabled && (
-            <div className="ml-8 border-l border-white/10 pl-8">
+            <div className="ml-4 border-l border-white/10 pl-4 flex gap-4">
               <button 
-                onClick={onReferClick}
-                className="group flex items-center gap-2 px-5 py-2 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/30 rounded-full text-blue-400 text-xs font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/5 backdrop-blur-sm"
+                onClick={onDashboardClick}
+                className="group flex items-center gap-2 px-5 py-2 bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/30 rounded-full text-emerald-400 text-xs font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/5 backdrop-blur-sm"
               >
-                <Share2 size={14} className="group-hover:rotate-12 transition-transform" />
-                Refer & Earn
+                <LayoutDashboard size={14} className="group-hover:rotate-12 transition-transform" />
+                Dashboard
               </button>
+              
+              {referralEnabled && (
+                <button 
+                  onClick={onReferClick}
+                  className="group flex items-center gap-2 px-5 py-2 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/30 rounded-full text-blue-400 text-xs font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/5 backdrop-blur-sm"
+                >
+                  <Share2 size={14} className="group-hover:rotate-12 transition-transform" />
+                  Refer & Earn
+                </button>
+              )}
             </div>
-          )}
         </div>
 
         {/* 3. CONNECT BUTTON & MOBILE TOGGLE */}

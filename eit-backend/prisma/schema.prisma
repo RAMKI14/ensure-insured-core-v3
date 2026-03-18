@@ -19,9 +19,9 @@ model ConsentLog {
 
 model ICOSettings {
   id              Int       @id @default(autoincrement())
-  phaseName       String    @default("Phase 1: Seed Round")
-  phaseTargetUSD  Float     @default(5000000.0)
-  isActive        Boolean   @default(true)
+  phaseName       String    @default("")
+  phaseTargetUSD  Float     @default(0)
+  isActive        Boolean   @default(false)
   referralActive  Boolean   @default(false)
   referralPercent Float     @default(5.0)
   phaseEndDate    DateTime?

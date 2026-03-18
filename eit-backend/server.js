@@ -247,15 +247,12 @@ app.get('/api/ico-status', async (req, res) => {
         // Fallback for first run if table empty
         let settings = await prisma.iCOSettings.findUnique({ where: { id: 1 } });
         if (!settings) {
-            // Auto-seed if missing
-            settings = await prisma.iCOSettings.create({
-                data: { id: 1, phaseName: "Phase 1: Seed Round", phaseTargetUSD: 5000000.0 }
-            });
+            return res.json({ phaseName: "", phaseTargetUSD: 0, isActive: false });
         }
         res.json(settings);
     } catch (error) {
-        // If table doesn't exist yet (migration pending), return default
-        res.json({ phaseName: "Phase 1: Seed Round", phaseTargetUSD: 15000000 });
+        console.error("ICO Status Fetch Error:", error);
+        res.json({ phaseName: "", phaseTargetUSD: 0, isActive: false });
     }
 });
 
@@ -736,19 +733,28 @@ app.get('/api/investor/total/:address', async (req, res) => {
             return res.status(400).json({ error: 'Invalid wallet address' });
         }
 
-        const [vestingEntries, publicSales] = await Promise.all([
+        const [vestingEntries, publicSales, referrals] = await Promise.all([
             prisma.$queryRaw`SELECT * FROM VestingEntry WHERE address = ${address} COLLATE NOCASE AND isRevoked = 0`,
-            prisma.$queryRaw`SELECT * FROM PublicSale WHERE address = ${address} COLLATE NOCASE`
+            prisma.$queryRaw`SELECT * FROM PublicSale WHERE address = ${address} COLLATE NOCASE ORDER BY timestamp DESC`,
+            prisma.$queryRaw`SELECT SUM(referrerReward) as totalRewards FROM Referral WHERE referrer = ${address} COLLATE NOCASE`
         ]);
 
         const totalVesting = vestingEntries.reduce((sum, v) => sum + Number(v.amount || 0), 0);
         const totalPublic = publicSales.reduce((sum, s) => sum + Number(s.amount || 0), 0);
+        const totalInvestedUSD = publicSales.reduce((sum, s) => sum + Number(s.amountUSD || 0), 0);
+        
+        // Get unique currencies used
+        const currenciesUsed = [...new Set(publicSales.map(s => s.crypto || 'ETH'))].join('/');
 
         res.json({
             address,
             totalEIT: totalVesting + totalPublic,
             vestingEIT: totalVesting,
-            publicEIT: totalPublic
+            publicEIT: totalPublic,
+            totalInvestedUSD,
+            latestCurrency: publicSales[0]?.crypto || 'ETH',
+            currenciesUsed: currenciesUsed || 'None',
+            referralRewards: Number(referrals[0]?.totalRewards || 0)
         });
     } catch (e) {
         console.error("Investor Total Fetch Error:", e);
@@ -1060,6 +1066,67 @@ app.get('/api/burn-summary', async (req, res) => {
         res.status(500).json({ error: "Failed to fetch burn summary" });
     }
 });
+
+// --- NEW: Investor Dashboard APIs ---
+
+// 1. Unified Transaction History for a specific address
+app.get('/api/investor/transactions/:address', async (req, res) => {
+    try {
+        const address = normalizeWallet(req.params.address);
+        if (!ethers.isAddress(address)) {
+            return res.status(400).json({ error: 'Invalid wallet address' });
+        }
+
+        const [publicSales, vestingEntries] = await Promise.all([
+            prisma.publicSale.findMany({
+                where: { address: { equals: address } },
+                orderBy: { timestamp: 'desc' }
+            }),
+            prisma.vestingEntry.findMany({
+                where: { address: { equals: address } },
+                orderBy: { createdAt: 'desc' }
+            })
+        ]);
+
+        const history = [
+            ...publicSales.map(s => ({ ...s, id: `pub-${s.id}`, type: 'Public Sale', date: s.timestamp })),
+            ...vestingEntries.map(v => ({ ...v, id: `vest-${v.id}`, type: v.role || 'Vesting', date: v.createdAt }))
+        ];
+
+        history.sort((a, b) => new Date(b.date) - new Date(a.date));
+        res.json(history);
+    } catch (e) {
+        console.error("Transaction History Fetch Error:", e);
+        res.status(500).json({ error: "Failed to fetch transactions" });
+    }
+});
+
+// 2. Referral Statistics for a specific address
+app.get('/api/investor/referrals/:address', async (req, res) => {
+    try {
+        const address = normalizeWallet(req.params.address);
+        const referrals = await prisma.referral.findMany({
+            where: { referrer: { equals: address } }
+        });
+
+        const totalEarned = referrals.reduce((sum, r) => sum + (r.referrerReward || 0), 0);
+        const pendingPayouts = referrals.filter(r => r.status !== 'PAID').length;
+
+        res.json({
+            totalReferrals: referrals.length,
+            totalEarnedEIT: totalEarned,
+            pendingPayouts,
+            referrals: referrals.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        });
+    } catch (e) {
+        console.error("Referral Stats Fetch Error:", e);
+        res.status(500).json({ error: "Failed to fetch referral stats" });
+    }
+});
+
+// --- REMOVED: /api/announcements ---
+// Previously exposed admin activity logs (wallet addresses, actions, IPs) to investors.
+// This was a critical security flaw and has been permanently removed.
 
 app.listen(PORT, () => {
     console.log(`🚀 SERVER RUNNING on http://localhost:${PORT}`);
